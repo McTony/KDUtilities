@@ -53,6 +53,10 @@ static char __KDImageCacheAssociatedOperation;
     for (__KDWeakReferenceObject *object in self.imageViews) {
         id <KDImageCacheDelegate> view = object.object;
         if (objc_getAssociatedObject(view, &__KDImageCacheAssociatedOperation) == self) {
+            objc_setAssociatedObject(view,
+                                     &__KDImageCacheAssociatedOperation,
+                                     nil,
+                                     OBJC_ASSOCIATION_RETAIN);
             [view setImage:image];
         }
     }
@@ -117,6 +121,10 @@ static char __KDImageCacheAssociatedOperation;
 
     UIImage *cachedImage = [self imageFromCacheWithURL:imageURL];
     if (cachedImage) {
+        objc_setAssociatedObject(imageView,
+                                 &__KDImageCacheAssociatedOperation,
+                                 nil,
+                                 OBJC_ASSOCIATION_RETAIN);
         [imageView setImage:cachedImage];
         return;
     }
