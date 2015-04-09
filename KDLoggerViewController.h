@@ -11,6 +11,8 @@
 @interface KDLoggerViewController : UIViewController
 
 + (instancetype)sharedInstance;
++ (UINavigationController *)sharedNavigationController;
+
 - (void)setupHandler;
 
 @end

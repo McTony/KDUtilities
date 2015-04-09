@@ -31,6 +31,17 @@
     return sharedInstance;
 }
 
++ (UINavigationController *)sharedNavigationController {
+    static UINavigationController *__nvc;
+    if (!__nvc) {
+        __nvc = [[UINavigationController alloc] initWithRootViewController:[self sharedInstance]];
+    }
+    ((KDLoggerViewController *)[self sharedInstance]).navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:[self sharedInstance] action:@selector(dismiss)];
+    ((KDLoggerViewController *)[self sharedInstance]).navigationItem.title = @"Console";
+    
+    return __nvc;
+}
+
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -47,6 +58,10 @@
     _textView.frame = self.view.bounds;
 
     [self.view addSubview:_textView];
+}
+
+- (void)dismiss {
+    [self dismissViewControllerAnimated:YES completion:^{}];
 }
 
 - (void)setupHandler {

@@ -60,3 +60,25 @@ extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass) {
     }
     return nil;
 }
+
+extern NSNumber *KDUtilIntegerValueNumberGuard(id obj) {
+    if (!obj) return nil;
+    if ([obj isKindOfClass:[NSNumber class]]) {
+        return obj;
+    }
+    if ([obj isKindOfClass:[NSString class]]) {
+        return @([(NSString *)obj integerValue]);
+    }
+    return nil;
+}
+
+extern NSString *KDUtilStringGuard(id obj) {
+    if (!obj) return nil;
+    if ([obj isKindOfClass:[NSString class]]) {
+        return obj;
+    }
+    if ([obj isKindOfClass:[NSNumber class]]) {
+        return [(NSNumber *)obj stringValue];
+    }
+    return nil;
+}
