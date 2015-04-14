@@ -84,4 +84,9 @@ static NSMutableArray *ActiveInstances = nil;
     return _systemAlertView;
 }
 
++ (void)showMessage:(NSString *)message cancelButtonTitle:(NSString *)cancelButtonTitle{
+    KDAlertView *av = [[KDAlertView alloc] initWithTitle:message message:nil cancelButtonTitle:cancelButtonTitle cancelAction:nil];
+    [av show];
+}
+
 @end

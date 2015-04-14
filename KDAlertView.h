@@ -19,4 +19,7 @@
 
 - (UIAlertView *)systemAlertView;
 
+
++ (void)showMessage:(NSString *)message cancelButtonTitle:(NSString *)cancelButtonTitle;
+
 @end
