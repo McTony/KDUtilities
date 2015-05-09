@@ -15,7 +15,9 @@
     
     [self enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         NSObject *newObj = block(obj, idx);
-        [newArray addObject:newObj];
+        if (newObj) {
+            [newArray addObject:newObj];
+        }
     }];
     
     return [newArray copy];
