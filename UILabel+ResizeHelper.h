@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface UILabel (ResizeHelper)
+@interface UILabel (KDResizeHelper)
 
 - (void)KD_resizeBaseOnLeft;
 - (void)KD_resizeBaseOnRight;
@@ -19,7 +19,7 @@
 @end
 
 
-@interface NSString (ResizeHelper)
+@interface NSString (KDResizeHelper)
 
 - (CGSize)KD_sizeWithAttributeFont:(UIFont *)font;
 
