@@ -12,13 +12,11 @@
     
     NSString *_cancelButtonTitle;
 
-    NSString *_title, *_message;
-
     UIAlertView *_systemAlertView;
 }
 @end
 
-static NSMutableArray *ActiveInstances = nil;
+static NSMutableArray *__ActiveInstances = nil;
 
 @implementation KDAlertView
 
@@ -29,7 +27,7 @@ static NSMutableArray *ActiveInstances = nil;
 
     static dispatch_once_t pred;
     dispatch_once(&pred, ^{
-        ActiveInstances = [NSMutableArray array];
+        __ActiveInstances = [NSMutableArray array];
     });
 
     self = [self init];
@@ -42,10 +40,7 @@ static NSMutableArray *ActiveInstances = nil;
             [_buttonActionBlockArray addObject:cancelAction ? [cancelAction copy]: [NSNull null]];
         }
 
-        _title = title;
-        _message = message;
-
-        _systemAlertView = [[UIAlertView alloc] initWithTitle:_title message:_message delegate:self cancelButtonTitle:nil otherButtonTitles:nil];
+        _systemAlertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:nil otherButtonTitles:nil];
     }
     return self;
 }
@@ -57,7 +52,7 @@ static NSMutableArray *ActiveInstances = nil;
 }
 
 - (void)show {
-    [ActiveInstances addObject:self];
+    [__ActiveInstances addObject:self];
     if (_cancelButtonTitle) {
         _systemAlertView.cancelButtonIndex = [_systemAlertView addButtonWithTitle:_cancelButtonTitle];
     }
@@ -77,7 +72,7 @@ static NSMutableArray *ActiveInstances = nil;
 
     _buttonActionBlockArray = nil;
     alertView.delegate = nil;
-    [ActiveInstances removeObject:self];
+    [__ActiveInstances removeObject:self];
 }
 
 - (UIAlertView *)systemAlertView {
@@ -87,6 +82,26 @@ static NSMutableArray *ActiveInstances = nil;
 + (void)showMessage:(NSString *)message cancelButtonTitle:(NSString *)cancelButtonTitle{
     KDAlertView *av = [[KDAlertView alloc] initWithTitle:message message:nil cancelButtonTitle:cancelButtonTitle cancelAction:nil];
     [av show];
+}
+
++ (KDAlertView *)presentingAlertView {
+    return __ActiveInstances.lastObject;
+}
+
+- (NSString *)title {
+    return _systemAlertView.title;
+}
+
+- (NSString *)message {
+    return _systemAlertView.message;
+}
+
+- (void)setTitle:(NSString *)title {
+    _systemAlertView.title = title;
+}
+
+- (void)setMessage:(NSString *)message {
+    _systemAlertView.message = message;
 }
 
 @end

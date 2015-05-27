@@ -19,7 +19,11 @@
 
 - (UIAlertView *)systemAlertView;
 
-
 + (void)showMessage:(NSString *)message cancelButtonTitle:(NSString *)cancelButtonTitle;
+
++ (KDAlertView *)presentingAlertView;
+
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *message;
 
 @end
