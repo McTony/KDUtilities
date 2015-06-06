@@ -16,9 +16,25 @@
     UIView *blackOverlay = [[UIView alloc] initWithFrame:self.bounds];
     blackOverlay.autoresizingMask = UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth;
     blackOverlay.backgroundColor = [UIColor colorWithWhite:0 alpha:0.4];
+    blackOverlay.userInteractionEnabled = NO;
+
     [self insertSubview:blackOverlay atIndex:0];
 
     return blackOverlay;
+}
+
+- (UIView *)KD_addBorderOutsideWithWidth:(CGFloat)width
+                                   color:(UIColor *)color
+                            cornerRadius:(CGFloat)cornerRadius {
+    UIView *view = [[UIView alloc] initWithFrame:CGRectInset(self.bounds, -width, -width)];
+    view.layer.borderWidth = width;
+    view.layer.cornerRadius = cornerRadius;
+    view.layer.borderColor = color.CGColor;
+    view.userInteractionEnabled = NO;
+
+    [self addSubview:view];
+    
+    return view;
 }
 
 @end

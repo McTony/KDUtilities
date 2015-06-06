@@ -13,6 +13,10 @@
 
 - (UIView *)KD_addBlackOverlay;
 
+- (UIView *)KD_addBorderOutsideWithWidth:(CGFloat)width
+                                   color:(UIColor *)color
+                            cornerRadius:(CGFloat)cornerRadius;
+
 @end
 
 

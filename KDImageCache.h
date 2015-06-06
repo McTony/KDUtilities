@@ -35,9 +35,10 @@
 
 - (UIImage *)imageFromCacheWithURL:(NSString *)imageURL;
 
-@property (nonatomic, copy) NSString *cachedImagePath;
+- (void)cleanAllDiskCache;
 
-@property (nonatomic) BOOL cleanAllDiskCacheWhenTerminating;
+@property (nonatomic, copy) NSString *cachedImagePath;
+@property (nonatomic) NSInteger maxMemoryCachedImage;
 
 @end
 

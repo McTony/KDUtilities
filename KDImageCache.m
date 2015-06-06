@@ -82,6 +82,8 @@ static char __KDImageCacheAssociatedOperation;
         _requestOperationMap = [NSMutableDictionary dictionary];
         _cachedImageMap = [NSMutableDictionary dictionary];
 
+        _maxMemoryCachedImage = 100;
+        
         NSString *cachePath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"KDImageCache"];
         [[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:YES attributes:nil error:nil];
 
@@ -93,7 +95,7 @@ static char __KDImageCacheAssociatedOperation;
                                                    object:nil];
 
         [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(cleanCache)
+                                                 selector:@selector(cleanExpiredCache)
                                                      name:UIApplicationWillTerminateNotification
                                                    object:nil];
     }
@@ -107,7 +109,7 @@ static char __KDImageCacheAssociatedOperation;
     }
     UIImage *localImage = [self localCacheImageForURL:imageURL];
     if (localImage) {
-        _cachedImageMap[imageURL] = localImage;
+        [self addImageInMemoryCached:localImage URL:imageURL];
         return localImage;
     }
 
@@ -146,7 +148,7 @@ static char __KDImageCacheAssociatedOperation;
                      [data writeToFile:[self localCachePathForURL:imageURL] atomically:YES];
 
                      dispatch_async( dispatch_get_main_queue(),^{
-                         _cachedImageMap[imageURL] = image;
+                         [self addImageInMemoryCached:image URL:imageURL];
                          [operation setImageForImageViews:image];
                      });
                  }
@@ -194,23 +196,35 @@ static char __KDImageCacheAssociatedOperation;
     NSString *path = [[KDImageCache sharedInstance] localCachePathForURL:URL];
     [data writeToFile:path atomically:YES];
     UIImage *image = [UIImage imageWithData:data];
-    _cachedImageMap[URL] = image;
+    [self addImageInMemoryCached:image URL:URL];
 }
 
 - (void)didReceiveMemoryWarning {
     [_cachedImageMap removeAllObjects];
 }
 
-- (void)cleanCache {
+- (void)cleanExpiredCache {
     for (NSString *path in [[NSFileManager defaultManager] subpathsAtPath:_cachedImagePath]) {
         NSString *fullPath = [_cachedImagePath stringByAppendingPathComponent:path];
         NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:fullPath error:nil];
 
-        if (self.cleanAllDiskCacheWhenTerminating ||
-            - [[attributes fileModificationDate] timeIntervalSinceNow] > 60 * 60 * 24 * 30) {
+        if (- [[attributes fileModificationDate] timeIntervalSinceNow] > 60 * 60 * 24 * 30) {
             [[NSFileManager defaultManager] removeItemAtPath:fullPath error:nil];
         }
     }
+}
+
+- (void)cleanAllDiskCache {
+    [[NSFileManager defaultManager] removeItemAtPath:_cachedImagePath error:nil];
+    [[NSFileManager defaultManager] createDirectoryAtPath:_cachedImagePath withIntermediateDirectories:YES attributes:nil error:nil];
+}
+
+- (void)addImageInMemoryCached:(UIImage *)image URL:(NSString *)URL {
+    if (_cachedImageMap.count >= _maxMemoryCachedImage) {
+        [_cachedImageMap removeAllObjects];
+    }
+    
+    _cachedImageMap[URL] = image;
 }
 
 KDUtilRemoveNotificationCenterObserverDealloc
