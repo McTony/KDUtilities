@@ -9,26 +9,37 @@
 #import "KDStroageHelper.h"
 #import "KDLogger.h"
 
-static NSString *cachePath;
-static NSString *libraryPath;
 
 @implementation KDStroageHelper
 
-+ (void)initialize {
++ (void)load {
     KDClassLog(@"Bundle path: %@", [[NSBundle mainBundle] bundlePath]);
-
-    NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    cachePath = cachePaths[0];
-    NSArray *libraryPaths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-    libraryPath = libraryPaths[0];
 }
 
-+ (NSString *)libraryPath {
++ (NSString *)libraryDirectoryPath {
+    static dispatch_once_t pred;
+    __strong static id libraryPath = nil;
+    
+    dispatch_once(&pred, ^{
+        NSArray *libraryPaths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+        libraryPath = libraryPaths.firstObject;
+    });
     return libraryPath;
 }
 
-+ (NSString *)cachePath {
++ (NSString *)cacheDirectoryPath {
+    static dispatch_once_t pred;
+    __strong static id cachePath = nil;
+    
+    dispatch_once(&pred, ^{
+        NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+        cachePath = cachePaths.firstObject;
+    });
     return cachePath;
+}
+
++ (NSString *)temporaryDirectoryPath {
+    return NSTemporaryDirectory();
 }
 
 @end

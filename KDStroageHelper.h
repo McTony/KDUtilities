@@ -10,7 +10,8 @@
 
 @interface KDStroageHelper : NSObject
 
-+ (NSString *)libraryPath;
-+ (NSString *)cachePath;
++ (NSString *)libraryDirectoryPath;
++ (NSString *)cacheDirectoryPath;
++ (NSString *)temporaryDirectoryPath;
 
 @end

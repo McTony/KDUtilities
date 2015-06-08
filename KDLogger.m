@@ -9,28 +9,25 @@
 #import "KDLogger.h"
 #include <execinfo.h>
 
-static NSString *_LogFileDirectory;
-static NSFileHandle *_LogFileHandle;
+static NSFileHandle *__logFileHandle;
+static NSString *__logFilePath;
 
-static NSUncaughtExceptionHandler *_PreviousExceptionHandler;
-static KDDebuggerCustomActionBlock _CustomActionBlock;
+static NSUncaughtExceptionHandler *__previousExceptionHandler;
+static KDDebuggerCustomActionBlock __customActionBlock;
 
-void KDDebuggerSetLogDirectory(NSString *path) {
-    if (![_LogFileDirectory isEqual:path]) {
-        _LogFileDirectory = [path copy];
-
-        if (_LogFileHandle) {
-            [_LogFileHandle closeFile];
-        }
-
-        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"yyyy'-'MM'-'dd'"];
-        NSString *dateStr = [dateFormatter stringFromDate:[NSDate date]];
-        NSString *path = [_LogFileDirectory stringByAppendingPathComponent:[dateStr stringByAppendingPathExtension:@"log"]];
-        [[NSFileManager defaultManager] createFileAtPath:path contents:nil attributes:nil];
-        _LogFileHandle = [NSFileHandle fileHandleForWritingAtPath:path];
-        [_LogFileHandle seekToEndOfFile];
+void KDDebuggerSetLogFilePath(NSString *path) {
+    if (__logFileHandle) {
+        [__logFileHandle closeFile];
+        __logFileHandle = nil;
     }
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        [[NSFileManager defaultManager] createFileAtPath:path contents:nil attributes:nil];
+    }
+    
+    __logFilePath = [path copy];
+    __logFileHandle = [NSFileHandle fileHandleForWritingAtPath:path];
+    [__logFileHandle seekToEndOfFile];
 }
 
 void _KDLog(NSString *module, NSString *format, ...) {
@@ -56,32 +53,30 @@ void _KDLog(NSString *module, NSString *format, ...) {
 
     fputs(log.UTF8String, stderr);
     
-    if (_LogFileHandle) {
+    if (__logFileHandle) {
         NSData *logFileData = [log dataUsingEncoding:NSUTF8StringEncoding];
-        @synchronized(_LogFileHandle) {
-            [_LogFileHandle writeData:logFileData];
-            [_LogFileHandle synchronizeFile];
-        }
+        dispatch_async( dispatch_get_main_queue(),^{
+            [__logFileHandle writeData:logFileData];
+            [__logFileHandle synchronizeFile];
+        });
     }
 
-    if (_CustomActionBlock) {
-        _CustomActionBlock(log);
+    if (__customActionBlock) {
+        __customActionBlock(log);
     }
 }
 
-void KDHandleException(NSException* exception)
-{
+void KDHandleException(NSException* exception) {
     KDLog(@"KDLogger", @"Uncaught Exception, description:%@, call stack:%@",
            exception.description,
            [exception callStackSymbols]);
-    if (_PreviousExceptionHandler) {
-        _PreviousExceptionHandler(exception);
+    if (__previousExceptionHandler) {
+        __previousExceptionHandler(exception);
     }
 }
 
-void KDDebuggerInstallUncaughtExceptionHandler(void)
-{
-    _PreviousExceptionHandler = NSGetUncaughtExceptionHandler();
+void KDDebuggerInstallUncaughtExceptionHandler(void) {
+    __previousExceptionHandler = NSGetUncaughtExceptionHandler();
 	NSSetUncaughtExceptionHandler(&KDHandleException);
 }
 
@@ -102,5 +97,9 @@ void KDDebuggerPrintCallStack(void)
 }
 
 void KDDebuggerSetLogCustomActionBlock(KDDebuggerCustomActionBlock block) {
-    _CustomActionBlock = [block copy];
+    __customActionBlock = [block copy];
+}
+
+NSString *KDDebuggerGetLogFilePath(void) {
+    return __logFilePath;
 }
