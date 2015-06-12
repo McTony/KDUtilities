@@ -216,12 +216,12 @@ KDUtilRemoveNotificationCenterObserverDealloc
 static char __KDImageCacheAssociatedOperation;
 
 - (void)KD_setImageWithURL:(NSString *)imageURL {
-    objc_setAssociatedObject(imageURL,
+    objc_setAssociatedObject(self,
                              &__KDImageCacheAssociatedOperation,
-                             self,
+                             imageURL,
                              OBJC_ASSOCIATION_RETAIN);
-        
-    __weak UIImageView *weakself = self;
+            
+    UIImageView *weakself = self;
     
     [[KDImageCache sharedInstance] loadImageWithURL:imageURL completion:^(UIImage *image, NSString *imageURL) {
         if (weakself && objc_getAssociatedObject(weakself, &__KDImageCacheAssociatedOperation) == imageURL) {
