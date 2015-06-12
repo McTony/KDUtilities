@@ -11,56 +11,29 @@
 #import "KDLogger.h"
 #import <objc/runtime.h>
 
-@interface __KDWeakReferenceObject : NSObject
-@property (weak) id object;
-@end
-
-@implementation __KDWeakReferenceObject
-- (id)initWithObject:(id)object {
-    self = [self init];
-    if (self) {
-        self.object = object;
-    }
-    return self;
-}
-@end
-
-static char __KDImageCacheAssociatedOperation;
-
 @interface __KDImageCacheOperation : NSObject
-@property (readonly) NSMutableArray *imageViews;
+@property (readonly) NSMutableArray *completionBlocks;
+@property (readonly) NSString *imageURL;
 @property (readwrite, strong) NSURLSessionDataTask *dataTask;
 @end
 
 @implementation __KDImageCacheOperation
-- (id)init {
+- (id)initWithURL:(NSString *)URL {
     self = [super init];
     if (self) {
-        _imageViews = [NSMutableArray array];
+        _imageURL = URL;
+        _completionBlocks = [NSMutableArray array];
     }
     return self;
 }
 
-- (void)addImageView:(id)view {
-    [_imageViews addObject:[[__KDWeakReferenceObject alloc] initWithObject:view]];
-
-    objc_setAssociatedObject(view,
-                             &__KDImageCacheAssociatedOperation,
-                             self,
-                             OBJC_ASSOCIATION_RETAIN);
-}
-- (void)setImageForImageViews:(UIImage *)image {
-    for (__KDWeakReferenceObject *object in self.imageViews) {
-        id <KDImageCacheDelegate> view = object.object;
-        if (objc_getAssociatedObject(view, &__KDImageCacheAssociatedOperation) == self) {
-            objc_setAssociatedObject(view,
-                                     &__KDImageCacheAssociatedOperation,
-                                     nil,
-                                     OBJC_ASSOCIATION_RETAIN);
-            [view setImage:image];
-        }
+- (void)invokeCompletionBlocksWithResult:(UIImage *)result {
+    for (KDImageCacheCompleteBlock block in _completionBlocks) {
+        block(result, _imageURL);
     }
 }
+
+
 @end
 
 @implementation KDImageCache
@@ -116,25 +89,21 @@ static char __KDImageCacheAssociatedOperation;
     return nil;
 }
 
-- (void)setImageViewContent:(id<KDImageCacheDelegate>)imageView
-                    withURL:(NSString *)imageURL {
+- (void)loadImageWithURL:(NSString *)imageURL
+                completion:(KDImageCacheCompleteBlock)completion {
     if (!KDUtilIsStringValid(imageURL) || ![NSURL URLWithString:imageURL]) return;
-    if (!imageView) return;
+    if (!completion) return;
 
     UIImage *cachedImage = [self imageFromCacheWithURL:imageURL];
     if (cachedImage) {
-        objc_setAssociatedObject(imageView,
-                                 &__KDImageCacheAssociatedOperation,
-                                 nil,
-                                 OBJC_ASSOCIATION_RETAIN);
-        [imageView setImage:cachedImage];
+        completion(cachedImage, imageURL);
         return;
     }
 
     __KDImageCacheOperation *operation = _requestOperationMap[imageURL];
     if (!operation) {
         NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:imageURL]];
-        operation = [[__KDImageCacheOperation alloc] init];
+        operation = [[__KDImageCacheOperation alloc] initWithURL:imageURL];
 
         NSURLSessionDataTask *task =
         [[NSURLSession sharedSession]
@@ -142,6 +111,10 @@ static char __KDImageCacheAssociatedOperation;
          completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
              if (error) {
                  KDClassLog(@"Request failed: %@", error);
+                 
+                 dispatch_async( dispatch_get_main_queue(),^{
+                     [operation invokeCompletionBlocksWithResult:nil];
+                 });
              } else {
                  UIImage *image = [UIImage imageWithData:data];
                  if (image) {
@@ -149,7 +122,13 @@ static char __KDImageCacheAssociatedOperation;
 
                      dispatch_async( dispatch_get_main_queue(),^{
                          [self addImageInMemoryCached:image URL:imageURL];
-                         [operation setImageForImageViews:image];
+                         [operation invokeCompletionBlocksWithResult:image];
+                     });
+                 } else {
+                     KDClassLog(@"Received invalid image: %@", imageURL);
+                     
+                     dispatch_async( dispatch_get_main_queue(),^{
+                         [operation invokeCompletionBlocksWithResult:nil];
                      });
                  }
              }
@@ -161,7 +140,8 @@ static char __KDImageCacheAssociatedOperation;
 
         _requestOperationMap[imageURL] = operation;
     }
-    [operation addImageView:imageView];
+    
+    [operation.completionBlocks addObject:completion];
 }
 
 - (NSString *)localCacheFileNameForURL:(NSString *)URL {
@@ -228,5 +208,40 @@ static char __KDImageCacheAssociatedOperation;
 }
 
 KDUtilRemoveNotificationCenterObserverDealloc
+
+@end
+
+@implementation UIImageView (KDImageCache)
+
+static char __KDImageCacheAssociatedOperation;
+
+- (void)KD_setImageWithURL:(NSString *)imageURL {
+    objc_setAssociatedObject(imageURL,
+                             &__KDImageCacheAssociatedOperation,
+                             self,
+                             OBJC_ASSOCIATION_RETAIN);
+        
+    __weak UIImageView *weakself = self;
+    
+    [[KDImageCache sharedInstance] loadImageWithURL:imageURL completion:^(UIImage *image, NSString *imageURL) {
+        if (weakself && objc_getAssociatedObject(weakself, &__KDImageCacheAssociatedOperation) == imageURL) {
+            objc_setAssociatedObject(weakself,
+                                     &__KDImageCacheAssociatedOperation,
+                                     nil,
+                                     OBJC_ASSOCIATION_RETAIN);
+            
+            if (image) {
+                if (weakself.layer.shouldRasterize) {
+                    CGFloat scale = weakself.layer.rasterizationScale;
+                    [weakself setImage:image];
+                    weakself.layer.rasterizationScale = scale;
+                } else {
+                    [weakself setImage:image];
+                }
+            }
+        }
+    }];
+    
+}
 
 @end

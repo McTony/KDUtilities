@@ -37,26 +37,6 @@
     return image;
 }
 
-
-- (UIImage *)KD_maskImageWithColor:(UIColor *)maskColor {
-    CGRect rect = CGRectMake(0, 0, self.size.width, self.size.height);
-
-    UIGraphicsBeginImageContextWithOptions(rect.size, NO, self.scale);
-
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextTranslateCTM(context, 0, rect.size.height);
-    CGContextScaleCTM(context, 1.0, -1.0);
-    CGContextClipToMask(context, rect, self.CGImage);
-    CGContextSetFillColorWithColor(context, maskColor.CGColor);
-    CGContextFillRect(context, rect);
-
-    UIImage *maskImage = UIGraphicsGetImageFromCurrentImageContext();
-
-    UIGraphicsEndImageContext();
-
-    return maskImage;
-}
-
 + (UIImage *)KD_imageWithColor:(UIColor *)color {
     return [self KD_imageWithColor:color andSize:CGSizeMake(1, 1)];
 }
@@ -72,5 +52,17 @@
     return retval;
 }
 
+- (UIImage *)KD_imageWithMaskColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0, 0, self.size.width, self.size.height);
+    UIGraphicsBeginImageContextWithOptions(rect.size, NO, self.scale);
+    CGContextRef c = UIGraphicsGetCurrentContext();
+    [self drawInRect:rect];
+    CGContextSetFillColorWithColor(c, [color CGColor]);
+    CGContextSetBlendMode(c, kCGBlendModeSourceAtop);
+    CGContextFillRect(c, rect);
+    UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return result;
+}
 
 @end

@@ -9,12 +9,11 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@protocol KDImageCacheDelegate <NSObject>
-@required
-- (void)setImage:(UIImage *)image;
-@end
+typedef void(^KDImageCacheCompleteBlock)(UIImage *image, NSString *imageURL);
 
-@interface UIImageView (KDImageCache) <KDImageCacheDelegate>
+
+@interface UIImageView (KDImageCache)
+- (void)KD_setImageWithURL:(NSString *)imageURL;
 @end
 
 @interface KDImageCache : NSObject {
@@ -30,8 +29,8 @@
 - (void)setCachedImageData:(NSData *)data
                     forURL:(NSString *)URL;
 
-- (void)setImageViewContent:(id<KDImageCacheDelegate>)imageView
-                    withURL:(NSString *)imageURL;
+- (void)loadImageWithURL:(NSString *)imageURL
+              completion:(KDImageCacheCompleteBlock)completion;
 
 - (UIImage *)imageFromCacheWithURL:(NSString *)imageURL;
 
