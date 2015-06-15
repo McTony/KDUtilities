@@ -43,7 +43,7 @@
 }
 
 + (NSString *)libraryDataStorageDirectoryPath {
-    return [libraryPath stringByAppendingPathComponent:@"KDStroageHelper"];
+    return [[self libraryDirectoryPath] stringByAppendingPathComponent:@"KDStroageHelper"];
 }
 
 + (void)writeDataToLibrary:(NSData *)data identifier:(NSString *)identifier {
