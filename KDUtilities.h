@@ -24,8 +24,8 @@ NS_INLINE BOOL KDUtilIsStringValid(NSString *str) {
 extern BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version);
 extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version);
 
-NS_INLINE BOOL KDUtilIs4InchScreen() {
-    return [UIScreen mainScreen].bounds.size.height == 568.0;
+NS_INLINE CGFloat KDUtilScreenWidth() {
+    return [UIScreen mainScreen].bounds.size.width;
 }
 
 extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass);

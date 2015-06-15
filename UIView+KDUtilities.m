@@ -37,6 +37,45 @@
     return view;
 }
 
+static char __TapGestureRecognizerKey;
+static char __TapActionKey;
+
+- (void)KD_addTapAction:(void(^)(UIView *view))action {
+    objc_setAssociatedObject(self,
+                             &__TapActionKey,
+                             action,
+                             OBJC_ASSOCIATION_COPY);
+    UITapGestureRecognizer *gr = objc_getAssociatedObject(self, &__TapGestureRecognizerKey);
+    
+    if (action) {
+        self.userInteractionEnabled = YES;
+        if (!gr) {
+            gr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(KD_tapped:)];
+            [self addGestureRecognizer:gr];
+            
+            objc_setAssociatedObject(self,
+                                     &__TapGestureRecognizerKey,
+                                     gr,
+                                     OBJC_ASSOCIATION_RETAIN);
+        }
+    } else {
+        if (gr) {
+            [self removeGestureRecognizer:gr];
+            
+            objc_setAssociatedObject(self,
+                                     &__TapGestureRecognizerKey,
+                                     nil,
+                                     OBJC_ASSOCIATION_RETAIN);
+
+        }
+    }
+}
+
+- (void)KD_tapped:(UITapGestureRecognizer *)gr {
+    void(^action)(UIView *view) = objc_getAssociatedObject(self, &__TapActionKey);
+    action(self);
+}
+
 @end
 
 

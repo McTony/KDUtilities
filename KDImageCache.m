@@ -207,6 +207,17 @@
     _cachedImageMap[URL] = image;
 }
 
+- (void)setCachedImagePath:(NSString *)cachedImagePath {
+    _cachedImagePath = cachedImagePath;
+    NSError *error;
+    if (![[NSFileManager defaultManager] fileExistsAtPath:cachedImagePath]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:cachedImagePath withIntermediateDirectories:YES attributes:nil error:&error];
+        if (error) {
+            KDClassLog(@"Error occurred when create directory: %@", error);
+        }
+    }
+}
+
 KDUtilRemoveNotificationCenterObserverDealloc
 
 @end

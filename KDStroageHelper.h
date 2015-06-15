@@ -14,4 +14,8 @@
 + (NSString *)cacheDirectoryPath;
 + (NSString *)temporaryDirectoryPath;
 
++ (void)writeDataToLibrary:(NSData *)data identifier:(NSString *)identifier;
++ (NSData *)dataFromLibraryWithIdentifier:(NSString *)identifier;
+
+
 @end

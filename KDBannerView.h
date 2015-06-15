@@ -9,13 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @class KDBannerView;
-@protocol KDBannerViewDataSource <NSObject>
-
-- (NSInteger)numberOfViewsInBannerView:(KDBannerView *)bannerView;
-
-- (UIView *)bannerView:(KDBannerView *)bannerView viewAtIndex:(NSInteger)index;
-
-@end
 
 @protocol KDBannerViewDelegate <NSObject>
 @optional
@@ -25,11 +18,11 @@
 
 @interface KDBannerView : UIView
 
-@property (weak, nonatomic) IBOutlet id<KDBannerViewDataSource> dataSource;
 @property (weak, nonatomic) IBOutlet id<KDBannerViewDelegate> delegate;
 
 @property (nonatomic) NSTimeInterval autoScrollDuration;
+@property (nonatomic) CGFloat pageControlBottomInset;
 
-- (void)reloadData;
+@property (nonatomic, copy) NSArray *views;
 
 @end

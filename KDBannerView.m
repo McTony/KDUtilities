@@ -16,7 +16,7 @@
     UIScrollView *_scrollView;
     UIPageControl *_pageControl;
     
-    __weak id<KDBannerViewDataSource> _dataSource;
+    NSArray *_views;
     
     NSTimer *_timer;
 }
@@ -28,6 +28,8 @@
     _scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.bounces = NO;
     _pageControl = [[UIPageControl alloc] init];
+    
+    _pageControlBottomInset = 10.0f;
     
     [self addSubview:_scrollView];
     [self addSubview:_pageControl];
@@ -49,22 +51,16 @@
     return self;
 }
 
-static const NSInteger kBannerViewTagMask = 10000;
-- (void)reloadData {
-    NSInteger count = [self.dataSource numberOfViewsInBannerView:self];
-    
-    _pageControl.numberOfPages = count;
-    
-    for (UIView *view in _scrollView.subviews) {
-        if (view.tag >= kBannerViewTagMask) {
-            [view removeFromSuperview];
-        }
+- (void)setViews:(NSArray *)array {
+    for (UIView *view in _views) {
+        [view removeFromSuperview];
     }
+    _views = [array copy];
+    _pageControl.numberOfPages = _views.count;
     
-    for (int i = 0; i < count; i++) {
-        UIView *view = [self.dataSource bannerView:self viewAtIndex:i];
+    for (int i = 0; i < _views.count; i++) {
+        UIView *view = _views[i];
         [_scrollView addSubview:view];
-        view.tag = kBannerViewTagMask + i;
         view.userInteractionEnabled = YES;
         
         for (UIGestureRecognizer *gr in view.gestureRecognizers) {
@@ -78,32 +74,29 @@ static const NSInteger kBannerViewTagMask = 10000;
     [self setNeedsLayout];
 }
 
-- (void)setDataSource:(id<KDBannerViewDataSource>)dataSource {
-    _dataSource = dataSource;
-    [self reloadData];
+- (NSArray *)views {
+    return  _views;
 }
 
 - (void)layoutSubviews {
     _scrollView.frame = self.bounds;
     
-    for (UIView *view in _scrollView.subviews) {
-        NSInteger index = view.tag - kBannerViewTagMask;
-        
+    [_views enumerateObjectsUsingBlock:^(UIView *view, NSUInteger index, BOOL *stop) {
         view.frame = CGRectMake(index * self.bounds.size.width, 0, self.bounds.size.width, self.bounds.size.height);
-    }
+    }];
     
     _scrollView.contentSize = CGSizeMake(self.bounds.size.width * _pageControl.numberOfPages, self.bounds.size.height);
     
     [_pageControl sizeToFit];
     
-    _pageControl.center = CGPointMake(self.bounds.size.width / 2.0f, self.bounds.size.height - 10);
+    _pageControl.center = CGPointMake(self.bounds.size.width / 2.0f, self.bounds.size.height - _pageControlBottomInset - _pageControl.frame.size.height);
 }
 
 - (void)timer {
     if (_pageControl.numberOfPages == 0) return;
     NSInteger page = _pageControl.currentPage + 1;
     if (page == _pageControl.numberOfPages) page = 0;
-    [_scrollView scrollRectToVisible:[_scrollView viewWithTag:page + kBannerViewTagMask].frame
+    [_scrollView scrollRectToVisible:((UIView *)_views[page]).frame
                             animated:YES];
 }
 
@@ -126,7 +119,7 @@ static const NSInteger kBannerViewTagMask = 10000;
     if ([self.delegate respondsToSelector:@selector(bannerView:didTapView:atIndex:)]) {
         [self.delegate bannerView:self
                        didTapView:gr.view
-                          atIndex:gr.view.tag - kBannerViewTagMask];
+                          atIndex:[_views indexOfObject:gr.view]];
     }
 }
 
@@ -139,6 +132,11 @@ static const NSInteger kBannerViewTagMask = 10000;
     if (autoScrollDuration != 0.0) {
         _timer = [NSTimer scheduledTimerWithTimeInterval:autoScrollDuration target:self selector:@selector(timer) userInfo:nil repeats:YES];
     }
+}
+
+- (void)setPageControlBottomInset:(CGFloat)pageControlBottomInset {
+    _pageControlBottomInset = pageControlBottomInset;
+    [self setNeedsLayout];
 }
 
 - (void)dealloc {

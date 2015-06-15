@@ -42,4 +42,27 @@
     return NSTemporaryDirectory();
 }
 
++ (NSString *)libraryDataStorageDirectoryPath {
+    return [libraryPath stringByAppendingPathComponent:@"KDStroageHelper"];
+}
+
++ (void)writeDataToLibrary:(NSData *)data identifier:(NSString *)identifier {
+    NSString *dir = [self libraryDataStorageDirectoryPath];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:dir]) {
+        NSError *error;
+        [[NSFileManager defaultManager] createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:&error];
+        if (error) {
+            KDClassLog(@"Error occurred when create directory: %@", error);
+            return;
+        }
+    }
+    [data writeToFile:[dir stringByAppendingPathComponent:identifier] atomically:YES];
+    
+    KDClassLog(@"Write data object: %@, bytes: %lu", identifier, data.length);
+}
+
++ (NSData *)dataFromLibraryWithIdentifier:(NSString *)identifier {
+    return [NSData dataWithContentsOfFile:[[self libraryDataStorageDirectoryPath] stringByAppendingPathComponent:identifier]];
+}
+
 @end
