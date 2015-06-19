@@ -13,6 +13,8 @@
 
 #define KDUtilRemoveNotificationCenterObserverDealloc - (void)dealloc{ [[NSNotificationCenter defaultCenter] removeObserver:self]; }
 
+#define KDUtilDefineWeakSelfRef __weak id weakSelf = self;
+
 NS_INLINE BOOL KDUtilIsObjectNull(id object) {
     return object == nil || object == [NSNull null];
 }

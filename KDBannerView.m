@@ -28,6 +28,7 @@
     _scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.bounces = NO;
     _pageControl = [[UIPageControl alloc] init];
+    _pageControl.userInteractionEnabled = NO;
     
     _pageControlBottomInset = 10.0f;
     
@@ -89,7 +90,7 @@
     
     [_pageControl sizeToFit];
     
-    _pageControl.center = CGPointMake(self.bounds.size.width / 2.0f, self.bounds.size.height - _pageControlBottomInset - _pageControl.frame.size.height);
+    _pageControl.center = CGPointMake(self.bounds.size.width / 2.0f, self.bounds.size.height - _pageControlBottomInset);
 }
 
 - (void)timer {

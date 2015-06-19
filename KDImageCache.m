@@ -162,7 +162,7 @@
                                          ofItemAtPath:localPath error:&error];
 
         if (error) {
-            KDClassLog(@"Error occurred when update file modification date: %@", error.localizedDescription);
+            KDClassLog(@"Error occurred when update file modification date: %@", error);
         }
 
         return [UIImage imageWithContentsOfFile:localPath];
