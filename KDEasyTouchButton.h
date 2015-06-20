@@ -17,4 +17,6 @@
 
 @property (nonatomic) UIColor *highlightMaskColor;
 
+@property (nonatomic) BOOL masksToCircle;
+
 @end

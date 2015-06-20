@@ -65,4 +65,18 @@
     return result;
 }
 
+- (UIImage *)KD_masksToCircle {
+    UIGraphicsBeginImageContextWithOptions(self.size, NO, self.scale);
+    CGRect rect = CGRectMake(0, 0, self.size.width, self.size.height);
+    [[UIBezierPath bezierPathWithRoundedRect:rect
+                                cornerRadius:self.size.width / 2.0f] addClip];
+    [self drawInRect:rect];
+    
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    
+    UIGraphicsEndImageContext();
+    
+    return image;
+}
+
 @end

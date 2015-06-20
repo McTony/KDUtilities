@@ -13,4 +13,6 @@
 
 - (UIImage *)KD_imageWithMaskColor:(UIColor *)color;
 
+- (UIImage *)KD_masksToCircle;
+
 @end

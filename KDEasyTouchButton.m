@@ -71,4 +71,24 @@
     _darkView.backgroundColor = highlightMaskColor;
 }
 
+- (void)setMasksToCircle:(BOOL)masksToCircle {
+    _masksToCircle = masksToCircle;
+    self.layer.masksToBounds = masksToCircle;
+    self.imageView.layer.masksToBounds = masksToCircle;
+    if (!masksToCircle) {
+        self.layer.cornerRadius = 0;
+        self.imageView.layer.cornerRadius = 0;
+    } else {
+        [self setNeedsLayout];
+    }
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if (_masksToCircle) {
+        self.layer.cornerRadius = self.bounds.size.width / 2.0f;
+        self.imageView.layer.cornerRadius = self.imageView.bounds.size.width / 2.0f;
+    }
+}
+
 @end
