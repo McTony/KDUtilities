@@ -8,7 +8,7 @@
 
 #import "KDKeychain.h"
 
-@implementation Keychain
+@implementation KDKeychain
 
 + (NSString *)keychainIdentifier {
     return [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];

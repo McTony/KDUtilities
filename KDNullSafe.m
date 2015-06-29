@@ -123,8 +123,7 @@
     }
 }
 
-- (void)forwardInvocation:(NSInvocation *)invocation
-{
+- (void)forwardInvocation:(NSInvocation *)invocation {
     KDClassLog(@"WARNING! NSNull receive unknown invocation.");
     [invocation invokeWithTarget:nil];
 }

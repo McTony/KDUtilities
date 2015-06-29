@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Keychain : NSObject
+@interface KDKeychain : NSObject
 
 + (BOOL)writeKeychainWithIdentifier:(NSString *)identifier data:(NSData *)data;
 
