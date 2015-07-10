@@ -16,10 +16,7 @@ typedef void(^KDImageCacheCompleteBlock)(UIImage *image, NSString *imageURL);
 - (void)KD_setImageWithURL:(NSString *)imageURL;
 @end
 
-@interface KDImageCache : NSObject {
-    NSMutableDictionary *_requestOperationMap;
-    NSMutableDictionary *_cachedImageMap;
-}
+@interface KDImageCache : NSObject 
 
 + (KDImageCache *)sharedInstance;
 
@@ -37,7 +34,6 @@ typedef void(^KDImageCacheCompleteBlock)(UIImage *image, NSString *imageURL);
 - (void)cleanAllDiskCache;
 
 @property (nonatomic, copy) NSString *cachedImagePath;
-@property (nonatomic) NSInteger maxMemoryCachedImage;
 
 @end
 

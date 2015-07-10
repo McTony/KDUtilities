@@ -40,7 +40,7 @@
 static char __TapGestureRecognizerKey;
 static char __TapActionKey;
 
-- (void)KD_addTapAction:(void(^)(UIView *view))action {
+- (UITapGestureRecognizer *)KD_addTapAction:(void(^)(UIView *view))action {
     objc_setAssociatedObject(self,
                              &__TapActionKey,
                              action,
@@ -58,6 +58,7 @@ static char __TapActionKey;
                                      gr,
                                      OBJC_ASSOCIATION_RETAIN);
         }
+        return gr;
     } else {
         if (gr) {
             [self removeGestureRecognizer:gr];
@@ -68,6 +69,7 @@ static char __TapActionKey;
                                      OBJC_ASSOCIATION_RETAIN);
 
         }
+        return nil;
     }
 }
 

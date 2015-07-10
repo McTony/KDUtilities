@@ -36,7 +36,10 @@
 
 @end
 
-@implementation KDImageCache
+@implementation KDImageCache{
+    NSMutableDictionary *_requestOperationMap;
+    NSCache *_cache;
+}
 
 + (KDImageCache *)sharedInstance {
     static dispatch_once_t pred;
@@ -53,19 +56,14 @@
     self = [super init];
     if (self) {
         _requestOperationMap = [NSMutableDictionary dictionary];
-        _cachedImageMap = [NSMutableDictionary dictionary];
+        _cache = [[NSCache alloc] init];
 
-        _maxMemoryCachedImage = 100;
+        _cache.countLimit = 100;
         
         NSString *cachePath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"KDImageCache"];
         [[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:YES attributes:nil error:nil];
 
         _cachedImagePath = cachePath;
-
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(didReceiveMemoryWarning)
-                                                     name:UIApplicationDidReceiveMemoryWarningNotification
-                                                   object:nil];
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(cleanExpiredCache)
@@ -76,7 +74,7 @@
 }
 
 - (UIImage *)imageFromCacheWithURL:(NSString *)imageURL {
-    UIImage *cachedImage = _cachedImageMap[imageURL];
+    UIImage *cachedImage = [_cache objectForKey:imageURL];
     if (cachedImage){
         return cachedImage;
     }
@@ -179,10 +177,6 @@
     [self addImageInMemoryCached:image URL:URL];
 }
 
-- (void)didReceiveMemoryWarning {
-    [_cachedImageMap removeAllObjects];
-}
-
 - (void)cleanExpiredCache {
     for (NSString *path in [[NSFileManager defaultManager] subpathsAtPath:_cachedImagePath]) {
         NSString *fullPath = [_cachedImagePath stringByAppendingPathComponent:path];
@@ -200,11 +194,7 @@
 }
 
 - (void)addImageInMemoryCached:(UIImage *)image URL:(NSString *)URL {
-    if (_cachedImageMap.count >= _maxMemoryCachedImage) {
-        [_cachedImageMap removeAllObjects];
-    }
-    
-    _cachedImageMap[URL] = image;
+    [_cache setObject:image forKey:URL];
 }
 
 - (void)setCachedImagePath:(NSString *)cachedImagePath {

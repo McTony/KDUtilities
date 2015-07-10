@@ -17,7 +17,7 @@
                                    color:(UIColor *)color
                             cornerRadius:(CGFloat)cornerRadius;
 
-- (void)KD_addTapAction:(void(^)(UIView *view))action;
+- (UITapGestureRecognizer *)KD_addTapAction:(void(^)(UIView *view))action;
 
 @end
 
