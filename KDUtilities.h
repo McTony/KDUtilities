@@ -10,6 +10,8 @@
 #import <UIKit/UIKit.h>
 
 #define KDAssertRequireMainThread() NSAssert([NSThread isMainThread], @"This method can only be invoked on main thread!");
+#define KDAssertRequirePad() NSAssert(KDUtilIsDevicePad(), @"This method can only be invoked on iPad!");
+#define KDAssertRequireNotPad() NSAssert(!KDUtilIsDevicePad(), @"This method can not be invoked on iPad!");
 
 #define KDUtilRemoveNotificationCenterObserverDealloc - (void)dealloc{ [[NSNotificationCenter defaultCenter] removeObserver:self]; }
 
@@ -36,3 +38,7 @@ extern NSNumber *KDUtilIntegerValueNumberGuard(id obj);
 extern NSString *KDUtilStringGuard(id obj);
 
 extern BOOL KDUtilIsDeviceJailbroken();
+
+NS_INLINE BOOL KDUtilIsDevicePad() {
+    return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
+}
