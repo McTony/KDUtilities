@@ -94,7 +94,6 @@
 
     UIImage *cachedImage = [self imageFromCacheWithURL:imageURL];
     if (cachedImage) {
-        KDClassLog(@"Cached image: %@", imageURL);
         completion(cachedImage, imageURL);
         return;
     }
@@ -226,7 +225,7 @@ static char __KDImageCacheAssociatedOperation;
     __weak UIImageView *weakself = self;
     
     [[KDImageCache sharedInstance] loadImageWithURL:imageURL completion:^(UIImage *image, NSString *imageURL) {
-        if (weakself && [objc_getAssociatedObject(weakself, &__KDImageCacheAssociatedOperation) isEqual: imageURL]) {
+        if (weakself && [objc_getAssociatedObject(weakself, &__KDImageCacheAssociatedOperation) isEqual:imageURL]) {
             objc_setAssociatedObject(weakself,
                                      &__KDImageCacheAssociatedOperation,
                                      nil,
