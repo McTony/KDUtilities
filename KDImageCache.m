@@ -9,6 +9,7 @@
 #import "KDImageCache.h"
 #import "KDUtilities.h"
 #import "KDLogger.h"
+#import <sys/utsname.h>
 #import <objc/runtime.h>
 
 @interface __KDImageCacheOperation : NSObject
@@ -39,6 +40,8 @@
 @implementation KDImageCache{
     NSMutableDictionary *_requestOperationMap;
     NSCache *_cache;
+    
+    NSURLSession *_URLSession;
 }
 
 + (KDImageCache *)sharedInstance {
@@ -57,8 +60,25 @@
     if (self) {
         _requestOperationMap = [NSMutableDictionary dictionary];
         _cache = [[NSCache alloc] init];
-
         _cache.countLimit = 100;
+        
+        NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+        configuration.HTTPMaximumConnectionsPerHost = 5;
+        
+        NSString *bundleName = [[NSBundle mainBundle] infoDictionary][@"CFBundleName"];
+        bundleName = [bundleName stringByReplacingOccurrencesOfString:@" " withString:@"_"];
+        NSString *version = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
+        
+        struct utsname systemInfo;
+        uname(&systemInfo);
+        
+        NSString *userAgent = [NSString stringWithFormat:@"KDImageCache/1.0 %@/%@ %@/%@", bundleName, version,
+                               @(systemInfo.machine), [[UIDevice currentDevice] systemVersion]];
+        
+        configuration.HTTPAdditionalHeaders = @{@"User-Agent": userAgent};
+        
+        _URLSession = [NSURLSession sessionWithConfiguration:configuration];
+
         
         NSString *cachePath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject] stringByAppendingPathComponent:@"KDImageCache"];
         [[NSFileManager defaultManager] createDirectoryAtPath:cachePath withIntermediateDirectories:YES attributes:nil error:nil];
@@ -104,7 +124,7 @@
         operation = [[__KDImageCacheOperation alloc] initWithURL:imageURL];
 
         NSURLSessionDataTask *task =
-        [[NSURLSession sharedSession]
+        [_URLSession
          dataTaskWithRequest:request
          completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
              if (error) {

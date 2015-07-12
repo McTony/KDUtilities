@@ -9,13 +9,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#define KDAssertRequireMainThread() NSAssert([NSThread isMainThread], @"This method can only be invoked on main thread!");
-#define KDAssertRequirePad() NSAssert(KDUtilIsDevicePad(), @"This method can only be invoked on iPad!");
-#define KDAssertRequireNotPad() NSAssert(!KDUtilIsDevicePad(), @"This method can not be invoked on iPad!");
+#define KDAssertRequireMainThread() KDAssert([NSThread isMainThread], @"This method can only be invoked on main thread!");
+#define KDAssertRequirePad() KDAssert(KDUtilIsDevicePad(), @"This method can only be invoked on iPad!");
+#define KDAssertRequireNotPad() KDAssert(!KDUtilIsDevicePad(), @"This method can not be invoked on iPad!");
 
 #define KDUtilRemoveNotificationCenterObserverDealloc - (void)dealloc{ [[NSNotificationCenter defaultCenter] removeObserver:self]; }
 
 #define KDUtilDefineWeakSelfRef __weak __typeof(self) weakSelf = self;
+
+#define KDUtilThrowNoImplementationException @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:[NSString stringWithFormat:@"This method has not been implemented: %@", NSStringFromSelector(_cmd)] userInfo:nil];
+
 
 NS_INLINE BOOL KDUtilIsObjectNull(id object) {
     return object == nil || object == [NSNull null];
@@ -42,3 +45,5 @@ extern BOOL KDUtilIsDeviceJailbroken();
 NS_INLINE BOOL KDUtilIsDevicePad() {
     return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
 }
+
+extern void KDAssert(BOOL eval, NSString *format, ...);

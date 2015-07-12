@@ -111,3 +111,16 @@ extern BOOL KDUtilIsDeviceJailbroken() {
     
     return NO;
 }
+
+extern void KDAssert(BOOL eval, NSString *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
+    if (!eval) {
+        [[[KDAlertView alloc] initWithTitle:@"Fatal Error" message:message cancelButtonTitle:@"OK" cancelAction:nil] show];
+#if DEBUG
+        [NSException raise:NSInternalInconsistencyException format:format arguments:ap];
+#endif
+    }
+    va_end(ap);
+}
