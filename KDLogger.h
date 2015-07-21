@@ -11,15 +11,18 @@
 #define KDLog(...) _KDLog(__VA_ARGS__)
 #define KDClassLog(...) _KDLog(NSStringFromClass([self class]), __VA_ARGS__)
 
-typedef void(^KDDebuggerCustomActionBlock)(NSString *message);
+typedef void(^KDLoggerCustomActionBlock)(NSString *message);
 
-void _KDLog(NSString *module, NSString *format, ...);
+extern void _KDLog(NSString *module, NSString *format, ...);
 
-void KDDebuggerSetLogCustomActionBlock(KDDebuggerCustomActionBlock block);
+extern void KDLoggerSetEnabled(BOOL enabled);
 
-void KDDebuggerSetLogFilePath(NSString *path);
-NSString *KDDebuggerGetLogFilePath(void);
+extern void KDLoggerSetLogCustomActionBlock(KDLoggerCustomActionBlock block);
 
-void KDDebuggerInstallUncaughtExceptionHandler(void);
+extern void KDLoggerSetLogFilePath(NSString *path);
+NSString *KDLoggerGetLogFilePath();
 
-void KDDebuggerPrintCallStack(void);
+extern void KDLoggerInstallUncaughtExceptionHandler();
+
+extern void KDLoggerPrintCallStack();
+extern void KDLoggerPrintEnviroment();

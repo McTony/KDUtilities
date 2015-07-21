@@ -69,7 +69,7 @@
     
     CFTypeRef result = NULL;
     OSStatus resultStatus = SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
-    if (resultStatus != noErr) {
+    if (resultStatus != noErr && resultStatus != errSecItemNotFound) {
         KDClassLog(@"Error occurred when read keychian item: %d", resultStatus);
     }
     

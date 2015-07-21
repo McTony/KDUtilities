@@ -1,5 +1,5 @@
 //
-//  KDDebugger.c
+//  KDLogger.c
 //  koudaixiang
 //
 //  Created by Liu Yachen on 3/22/12.
@@ -8,14 +8,22 @@
 
 #import "KDLogger.h"
 #include <execinfo.h>
+#import <sys/utsname.h>
+#import <asl.h>
 
 static NSFileHandle *__logFileHandle;
 static NSString *__logFilePath;
 
 static NSUncaughtExceptionHandler *__previousExceptionHandler;
-static KDDebuggerCustomActionBlock __customActionBlock;
+static KDLoggerCustomActionBlock __customActionBlock;
 
-void KDDebuggerSetLogFilePath(NSString *path) {
+static BOOL __loggerEnabled = YES;
+void KDLoggerSetEnabled(BOOL enabled) {
+    __loggerEnabled = enabled;
+}
+
+
+void KDLoggerSetLogFilePath(NSString *path) {
     if (__logFileHandle) {
         [__logFileHandle closeFile];
         __logFileHandle = nil;
@@ -31,11 +39,17 @@ void KDDebuggerSetLogFilePath(NSString *path) {
 }
 
 void _KDLog(NSString *module, NSString *format, ...) {
+    if (!__loggerEnabled) return;
+    
     static dispatch_once_t pred;
     static NSDateFormatter *dateFormatter;
+    static aslclient aslclient;
+
     dispatch_once(&pred, ^{
         dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setDateFormat:@"HHmmss"];
+        
+        aslclient = asl_open(NULL, "com.apple.console", 0);
     });
 
     va_list ap;
@@ -43,26 +57,44 @@ void _KDLog(NSString *module, NSString *format, ...) {
     NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
     va_end(ap);
     
-    NSString *log;
-    NSString *dateStr = [dateFormatter stringFromDate:[NSDate date]];
-    if ([NSThread isMainThread]) {
-        log = [[NSString alloc] initWithFormat:@"%@  [%@] %@\n", dateStr, module, message];
-    } else {
-        log = [[NSString alloc] initWithFormat:@"%@ *[%@] %@\n", dateStr, module, message];
+    NSString *line = [[NSString alloc] initWithFormat:[NSThread isMainThread] ? @"%@  [%@] %@\n" : @"%@ *[%@] %@\n",
+                      [dateFormatter stringFromDate:[NSDate date]],
+                      module,
+                      message];
+    
+    fputs(line.UTF8String, stderr);
+    {
+        uid_t const readUID = geteuid();
+        char readUIDString[16];
+        snprintf(readUIDString, sizeof(readUIDString), "%d", readUID);
+        
+        aslmsg m = asl_new(ASL_TYPE_MSG);
+        if (m != NULL) {
+            if (asl_set(m, ASL_KEY_LEVEL, "5") == 0 &&
+                asl_set(m, ASL_KEY_MSG, line.UTF8String) == 0 &&
+                asl_set(m, ASL_KEY_READ_UID, readUIDString) == 0) {
+                asl_send(aslclient, m);
+            }
+            asl_free(m);
+        }
     }
-
-    fputs(log.UTF8String, stderr);
     
     if (__logFileHandle) {
-        NSData *logFileData = [log dataUsingEncoding:NSUTF8StringEncoding];
-        dispatch_async( dispatch_get_main_queue(),^{
-            [__logFileHandle writeData:logFileData];
+        NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
+        void (^action)() = ^{
+            [__logFileHandle writeData:lineData];
             [__logFileHandle synchronizeFile];
-        });
+        };
+        
+        if ([NSThread isMainThread]) {
+            action();
+        } else {
+            dispatch_sync( dispatch_get_main_queue(), action);
+        }
     }
 
     if (__customActionBlock) {
-        __customActionBlock(log);
+        __customActionBlock(line);
     }
 }
 
@@ -75,14 +107,13 @@ void KDHandleException(NSException* exception) {
     }
 }
 
-void KDDebuggerInstallUncaughtExceptionHandler(void) {
+void KDLoggerInstallUncaughtExceptionHandler(void) {
     __previousExceptionHandler = NSGetUncaughtExceptionHandler();
 	NSSetUncaughtExceptionHandler(&KDHandleException);
 }
 
-void KDDebuggerPrintCallStack(void)
-{
-    void* callstack[128];
+void KDLoggerPrintCallStack(void) {
+    void *callstack[128];
     int frames = backtrace(callstack, 128);
     char **strs = backtrace_symbols(callstack, frames);
     
@@ -96,10 +127,19 @@ void KDDebuggerPrintCallStack(void)
     KDLog(@"KDLogger", @"Call stack:%@", backtrace);
 }
 
-void KDDebuggerSetLogCustomActionBlock(KDDebuggerCustomActionBlock block) {
+void KDLoggerSetLogCustomActionBlock(KDLoggerCustomActionBlock block) {
     __customActionBlock = [block copy];
 }
 
-NSString *KDDebuggerGetLogFilePath(void) {
+void KDLoggerPrintEnviroment() {
+    UIDevice *currentDevice = [UIDevice currentDevice];
+    struct utsname systemInfo;
+    uname(&systemInfo);
+    
+    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+    KDLog(@"KDLogger", @"Enviroment: %@, %@, %@(%@)", @(systemInfo.machine), [currentDevice systemVersion], infoDictionary[@"CFBundleShortVersionString"], infoDictionary[@"CFBundleVersion"]);
+}
+
+NSString *KDLoggerGetLogFilePath(void) {
     return __logFilePath;
 }

@@ -10,6 +10,7 @@
 + (UIImage *)KD_imageWithColor:(UIColor *)color andSize:(CGSize)size;
 
 - (UIImage *)KD_imageByCroppedToSquare:(CGFloat)fitSize;
+- (UIImage *)KD_cropImageWithSize:(CGSize)cropSize;
 
 - (UIImage *)KD_imageWithMaskColor:(UIColor *)color;
 

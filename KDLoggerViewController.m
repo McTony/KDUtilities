@@ -39,7 +39,7 @@
 {
     [super viewDidLoad];
 
-    _logFileHandler = [NSFileHandle fileHandleForReadingAtPath:KDDebuggerGetLogFilePath()];
+    _logFileHandler = [NSFileHandle fileHandleForReadingAtPath:KDLoggerGetLogFilePath()];
     
     __weak KDLoggerViewController *weakself = self;
     [_logFileHandler setReadabilityHandler:^(NSFileHandle *handler) {
