@@ -86,27 +86,33 @@ extern NSString *KDUtilStringGuard(id obj) {
 
 extern BOOL KDUtilIsDeviceJailbroken() {
 #if !(TARGET_IPHONE_SIMULATOR)
-    if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/bin/bash"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/sbin/sshd"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/etc/apt"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/private/var/lib/apt/"] ||
-        [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"cydia://package/com.example.package"]])  {
-        return YES;
-    }
     
-    FILE *f = NULL ;
-    if ((f = fopen("/bin/bash", "r")) ||
-        (f = fopen("/Applications/Cydia.app", "r")) ||
-        (f = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r")) ||
-        (f = fopen("/usr/sbin/sshd", "r")) ||
-        (f = fopen("/etc/apt", "r")))  {
-        fclose(f);
-        return YES;
-    }
-    fclose(f);
+    static dispatch_once_t pred;
+    static BOOL jailbroken = NO;
     
+    dispatch_once(&pred, ^{
+        if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"] ||
+            [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"] ||
+            [[NSFileManager defaultManager] fileExistsAtPath:@"/bin/bash"] ||
+            [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/sbin/sshd"] ||
+            [[NSFileManager defaultManager] fileExistsAtPath:@"/etc/apt"] ||
+            [[NSFileManager defaultManager] fileExistsAtPath:@"/private/var/lib/apt/"])  {
+            jailbroken = YES;
+            return;
+        }
+        
+        FILE *f = NULL ;
+        if ((f = fopen("/bin/bash", "r")) ||
+            (f = fopen("/Applications/Cydia.app", "r")) ||
+            (f = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r")) ||
+            (f = fopen("/usr/sbin/sshd", "r")) ||
+            (f = fopen("/etc/apt", "r")))  {
+            jailbroken = YES;
+        }
+        if (f) fclose(f);
+    });
+    
+    return jailbroken;
 #endif
     
     return NO;
