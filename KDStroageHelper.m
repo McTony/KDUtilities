@@ -12,10 +12,6 @@
 
 @implementation KDStroageHelper
 
-+ (void)load {
-    KDClassLog(@"Bundle path: %@", [[NSBundle mainBundle] bundlePath]);
-}
-
 + (NSString *)libraryDirectoryPath {
     static dispatch_once_t pred;
     __strong static id libraryPath = nil;
