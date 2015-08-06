@@ -7,6 +7,7 @@
 //
 
 #import "KDKeychain.h"
+#import "KDLogger.h"
 
 @implementation KDKeychain
 

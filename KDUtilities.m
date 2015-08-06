@@ -7,6 +7,8 @@
 //
 
 #import "KDUtilities.h"
+#import "KDAlertView.h"
+#import <UIKit/UIKit.h>
 
 NSComparisonResult _compareVersions(NSString* leftVersion, NSString* rightVersion)
 {

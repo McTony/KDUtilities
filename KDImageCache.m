@@ -163,7 +163,7 @@
 }
 
 - (NSString *)localCacheFileNameForURL:(NSString *)URL {
-    return (__bridge_transfer NSString *)(CFURLCreateStringByAddingPercentEscapes(NULL, (__bridge CFStringRef)URL, NULL, (__bridge CFStringRef)@"!*'();:@&=+$,/?%#[]", kCFStringEncodingUTF8));
+    return [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
 }
 
 - (NSString *)localCachePathForURL:(NSString *)URL {

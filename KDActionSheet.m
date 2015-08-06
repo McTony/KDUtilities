@@ -5,7 +5,9 @@
 //  Created by Blankwonder on 11/20/12.
 //
 
+#import <UIKit/UIKit.h>
 #import "KDActionSheet.h"
+#import "KDUtilities.h"
 
 @interface KDActionSheet() <UIActionSheetDelegate>{
     NSMutableArray *_buttonTitleArray;

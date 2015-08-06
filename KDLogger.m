@@ -7,9 +7,11 @@
 //
 
 #import "KDLogger.h"
-#include <execinfo.h>
+#import <execinfo.h>
 #import <sys/utsname.h>
 #import <asl.h>
+#import <UIKit/UIKit.h>
+#import "KDUtilities.h"
 
 static NSFileHandle *__logFileHandle;
 static NSString *__logFilePath;

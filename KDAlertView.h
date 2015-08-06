@@ -5,6 +5,7 @@
 //  Created by Blankwonder on 11/20/12.
 //
 
+#import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
 @interface KDAlertView : NSObject

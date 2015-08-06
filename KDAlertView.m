@@ -6,6 +6,8 @@
 //
 
 #import "KDAlertView.h"
+#import "KDUtilities.h"
+
 @interface KDAlertView(){
     NSMutableArray *_buttonTitleArray;
     NSMutableArray *_buttonActionBlockArray;

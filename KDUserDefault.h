@@ -6,6 +6,9 @@
 //  Copyright (c) 2013 Suixing Tech. All rights reserved.
 //
 
+
+#import <Foundation/Foundation.h>
+
 @interface KDUserDefault : NSObject
 
 + (instancetype)sharedDefault;

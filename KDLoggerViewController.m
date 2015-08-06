@@ -8,6 +8,7 @@
 
 #import "KDLoggerViewController.h"
 #import "KDLogger.h"
+#import "KDAlertView.h"
 #import <MobileCoreServices/UTCoreTypes.h>
 
 @interface KDLoggerViewController () {
