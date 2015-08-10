@@ -28,6 +28,10 @@ NS_INLINE BOOL KDUtilIsStringValid(NSString *str) {
     return str != nil && (id)str != [NSNull null] && ![str isEqualToString:@""];
 }
 
+NS_INLINE NSString *KDUtilStringWithInvalidPlaceholder(NSString *str, NSString *placeholder) {
+    return KDUtilIsStringValid(str) ? str : placeholder;
+}
+
 extern BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version);
 extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version);
 
