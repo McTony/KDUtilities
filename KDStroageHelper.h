@@ -16,6 +16,7 @@
 
 + (void)writeDataToLibrary:(NSData *)data identifier:(NSString *)identifier;
 + (NSData *)dataFromLibraryWithIdentifier:(NSString *)identifier;
++ (void)deleteDataFromLibraryWithIdentifier:(NSString *)identifier;
 
 
 @end

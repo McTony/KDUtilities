@@ -39,6 +39,10 @@ NS_INLINE CGFloat KDUtilScreenWidth() {
     return [UIScreen mainScreen].bounds.size.width;
 }
 
+NS_INLINE CGFloat KDUtilScreenHeight() {
+    return [UIScreen mainScreen].bounds.size.height;
+}
+
 extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass);
 
 extern NSNumber *KDUtilIntegerValueNumberGuard(id obj);
@@ -51,3 +55,4 @@ NS_INLINE BOOL KDUtilIsDevicePad() {
 }
 
 extern void KDAssert(BOOL eval, NSString *format, ...);
+

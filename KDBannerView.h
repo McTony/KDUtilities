@@ -25,4 +25,6 @@
 
 @property (nonatomic, copy) NSArray *views;
 
+@property (nonatomic, readonly) UIPageControl *pageControl;
+
 @end
