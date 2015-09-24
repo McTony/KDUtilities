@@ -125,7 +125,8 @@ extern void KDAssert(BOOL eval, NSString *format, ...) {
     va_start(ap, format);
     NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
     if (!eval) {
-        [[[KDAlertView alloc] initWithTitle:@"Fatal Error" message:message cancelButtonTitle:@"OK" cancelAction:nil] show];
+        id class = NSClassFromString(@"KDAlertView");
+        [[[class alloc] initWithTitle:@"Fatal Error" message:message cancelButtonTitle:@"OK" cancelAction:nil] show];
 #if DEBUG
         [NSException raise:NSInternalInconsistencyException format:format arguments:ap];
 #endif

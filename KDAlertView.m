@@ -8,6 +8,8 @@
 #import "KDAlertView.h"
 #import "KDUtilities.h"
 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 @interface KDAlertView(){
     NSMutableArray *_buttonTitleArray;
     NSMutableArray *_buttonActionBlockArray;
@@ -107,3 +109,5 @@ static NSMutableArray *__ActiveInstances = nil;
 }
 
 @end
+
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"

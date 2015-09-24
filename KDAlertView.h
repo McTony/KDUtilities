@@ -8,6 +8,8 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 @interface KDAlertView : NSObject
 
 - (instancetype)initWithTitle:(NSString *)title
@@ -28,3 +30,5 @@
 @property (nonatomic, copy) NSString *message;
 
 @end
+
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"

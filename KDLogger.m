@@ -100,7 +100,7 @@ void _KDLog(NSString *module, NSString *format, ...) {
     }
 }
 
-void KDHandleException(NSException* exception) {
+void KDLoggerExceptionHandler(NSException* exception) {
     KDLog(@"KDLogger", @"Uncaught Exception, description:%@, call stack:%@",
            exception.description,
            [exception callStackSymbols]);
@@ -111,7 +111,7 @@ void KDHandleException(NSException* exception) {
 
 void KDLoggerInstallUncaughtExceptionHandler(void) {
     __previousExceptionHandler = NSGetUncaughtExceptionHandler();
-	NSSetUncaughtExceptionHandler(&KDHandleException);
+	NSSetUncaughtExceptionHandler(&KDLoggerExceptionHandler);
 }
 
 void KDLoggerPrintCallStack(void) {

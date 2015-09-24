@@ -26,7 +26,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -39,13 +38,13 @@
     
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-        
-        if (self.cellSetupBlock) {
-            self.cellSetupBlock(cell);
-        }
     }
     
     cell.textLabel.text = _options[indexPath.row];
+    
+    if (self.cellSetupBlock) {
+        self.cellSetupBlock(cell);
+    }
     
     return cell;
 }
@@ -53,7 +52,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (self.completionHandler) {
         self.completionHandler(_options[indexPath.row], indexPath.row);
-        self.completionHandler = nil;
     }
 }
 

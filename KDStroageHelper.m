@@ -12,6 +12,17 @@
 
 @implementation KDStroageHelper
 
++ (NSString *)documentDirectoryPath {
+    static dispatch_once_t pred;
+    __strong static id path = nil;
+    
+    dispatch_once(&pred, ^{
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        path = paths.firstObject;
+    });
+    return path;
+}
+
 + (NSString *)libraryDirectoryPath {
     static dispatch_once_t pred;
     __strong static id libraryPath = nil;
