@@ -13,4 +13,6 @@
 
 + (instancetype)sharedDefault;
 
+- (BOOL)synchronize;
+
 @end

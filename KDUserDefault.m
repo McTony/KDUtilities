@@ -34,8 +34,8 @@
 - (void)forwardInvocation:(NSInvocation *)invocation {
     NSString *key = NSStringFromSelector([invocation selector]);
     if ([key hasPrefix:@"set"]) {
-        key = [key substringWithRange:NSMakeRange(3, [key length]-4)];
-        NSString *kvoKey = [key stringByReplacingCharactersInRange:NSMakeRange(0,1)
+        key = [key substringWithRange:NSMakeRange(3, [key length] - 4)];
+        NSString *kvoKey = [key stringByReplacingCharactersInRange:NSMakeRange(0, 1)
                                                         withString:[[key substringToIndex:1] lowercaseString]];
 
         __unsafe_unretained id value = nil;
@@ -49,13 +49,17 @@
         }
         [self didChangeValueForKey:kvoKey];
     } else {
-        key = [key stringByReplacingCharactersInRange:NSMakeRange(0,1)
+        key = [key stringByReplacingCharactersInRange:NSMakeRange(0, 1)
                                            withString:[[key substringToIndex:1] uppercaseString]];
 
         id obj = [[NSUserDefaults standardUserDefaults] objectForKey:key];
         [invocation setReturnValue:&obj];
         [invocation retainArguments];
     }
+}
+
+- (BOOL)synchronize {
+    return [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 @end
