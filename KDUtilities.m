@@ -7,6 +7,31 @@
 //
 
 #import "KDUtilities.h"
+
+extern NSNumber *KDUtilIntegerValueNumberGuard(id obj) {
+    if (!obj) return nil;
+    if ([obj isKindOfClass:[NSNumber class]]) {
+        return obj;
+    }
+    if ([obj isKindOfClass:[NSString class]]) {
+        return @([(NSString *)obj integerValue]);
+    }
+    return nil;
+}
+
+extern NSString *KDUtilStringGuard(id obj) {
+    if (!obj) return nil;
+    if ([obj isKindOfClass:[NSString class]]) {
+        return obj;
+    }
+    if ([obj isKindOfClass:[NSNumber class]]) {
+        return [(NSNumber *)obj stringValue];
+    }
+    return nil;
+}
+
+#if TARGET_OS_IOS
+
 #import "KDAlertView.h"
 #import <UIKit/UIKit.h>
 
@@ -47,11 +72,11 @@ BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version) {
 extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version) {
     static int OSMajorVersion;
     static dispatch_once_t pred;
-
+    
     dispatch_once(&pred, ^{
         OSMajorVersion = [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."][0] intValue];
     });
-
+    
     return OSMajorVersion >= version;
 }
 
@@ -62,29 +87,6 @@ extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass) {
     }
     return nil;
 }
-
-extern NSNumber *KDUtilIntegerValueNumberGuard(id obj) {
-    if (!obj) return nil;
-    if ([obj isKindOfClass:[NSNumber class]]) {
-        return obj;
-    }
-    if ([obj isKindOfClass:[NSString class]]) {
-        return @([(NSString *)obj integerValue]);
-    }
-    return nil;
-}
-
-extern NSString *KDUtilStringGuard(id obj) {
-    if (!obj) return nil;
-    if ([obj isKindOfClass:[NSString class]]) {
-        return obj;
-    }
-    if ([obj isKindOfClass:[NSNumber class]]) {
-        return [(NSNumber *)obj stringValue];
-    }
-    return nil;
-}
-
 
 extern BOOL KDUtilIsDeviceJailbroken() {
 #if !(TARGET_IPHONE_SIMULATOR)
@@ -120,13 +122,20 @@ extern BOOL KDUtilIsDeviceJailbroken() {
     return NO;
 }
 
+#endif
+
+
 extern void KDAssert(BOOL eval, NSString *format, ...) {
     va_list ap;
     va_start(ap, format);
-    NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
     if (!eval) {
-        id class = NSClassFromString(@"KDAlertView");
-        [[[class alloc] initWithTitle:@"Fatal Error" message:message cancelButtonTitle:@"OK" cancelAction:nil] show];
+#if TARGET_OS_IOS
+        Class class = NSClassFromString(@"KDAlertView");
+        if (class) {
+            NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
+            [[[class alloc] initWithTitle:@"Fatal Error" message:message cancelButtonTitle:@"OK" cancelAction:nil] show];
+        }
+#endif
 #if DEBUG
         [NSException raise:NSInternalInconsistencyException format:format arguments:ap];
 #endif

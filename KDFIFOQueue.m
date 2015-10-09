@@ -35,6 +35,10 @@
     return node.payload;
 }
 
+- (id)peek {
+    return _firstNode.payload;
+}
+
 - (void)enqueue:(id)anObject {
     KDFIFOQueueNode *newNode = [[KDFIFOQueueNode alloc] init];
     newNode.payload = anObject;

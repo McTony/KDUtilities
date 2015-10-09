@@ -23,4 +23,20 @@
     return [newArray copy];
 }
 
+- (id)KD_randomObject{
+    return self.count == 0 ? nil : self[arc4random_uniform((unsigned int)self.count)];
+}
+
+- (NSArray *)KD_shuffledArray {
+    NSMutableArray *array = [NSMutableArray arrayWithArray:self];
+    NSUInteger count = [array count];
+    for (NSUInteger i = 0; i < count - 1; ++i) {
+        NSInteger remainingCount = count - i;
+        NSInteger exchangeIndex = i + arc4random_uniform((u_int32_t )remainingCount);
+        [array exchangeObjectAtIndex:i withObjectAtIndex:exchangeIndex];
+    }
+    
+    return [array copy];
+}
+
 @end

@@ -25,4 +25,7 @@ NSString *KDLoggerGetLogFilePath();
 extern void KDLoggerInstallUncaughtExceptionHandler();
 
 extern void KDLoggerPrintCallStack();
+
+#if TARGET_OS_IOS
 extern void KDLoggerPrintEnviroment();
+#endif

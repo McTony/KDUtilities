@@ -14,6 +14,8 @@
 
 @implementation KDBannerView {
     UIScrollView *_scrollView;
+    UIPageControl *_pageControl;
+    
     NSArray *_views;
     
     NSTimer *_timer;
@@ -78,7 +80,6 @@
 }
 
 - (void)layoutSubviews {
-    [super layoutSubviews];
     _scrollView.frame = self.bounds;
     
     [_views enumerateObjectsUsingBlock:^(UIView *view, NSUInteger index, BOOL *stop) {

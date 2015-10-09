@@ -163,7 +163,7 @@
 }
 
 - (NSString *)localCacheFileNameForURL:(NSString *)URL {
-    return [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]];
+    return [URL stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
 }
 
 - (NSString *)localCachePathForURL:(NSString *)URL {

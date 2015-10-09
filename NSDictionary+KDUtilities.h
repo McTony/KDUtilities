@@ -12,4 +12,6 @@
 
 - (NSDictionary *)KD_subdictionaryWithKeys:(NSArray *)keys;
 
+- (NSDictionary *)KD_reversedDictionary;
+
 @end

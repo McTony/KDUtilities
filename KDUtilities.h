@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 #define KDAssertRequireMainThread() KDAssert([NSThread isMainThread], @"This method can only be invoked on main thread!");
 #define KDAssertRequirePad() KDAssert(KDUtilIsDevicePad(), @"This method can only be invoked on iPad!");
@@ -32,21 +31,15 @@ NS_INLINE NSString *KDUtilStringWithInvalidPlaceholder(NSString *str, NSString *
     return KDUtilIsStringValid(str) ? str : placeholder;
 }
 
-extern BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version);
-extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version);
-
-NS_INLINE CGFloat KDUtilScreenWidth() {
-    return [UIScreen mainScreen].bounds.size.width;
-}
-
-NS_INLINE CGFloat KDUtilScreenHeight() {
-    return [UIScreen mainScreen].bounds.size.height;
-}
-
-extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass);
-
 extern NSNumber *KDUtilIntegerValueNumberGuard(id obj);
 extern NSString *KDUtilStringGuard(id obj);
+
+extern void KDAssert(BOOL eval, NSString *format, ...);
+
+
+#if TARGET_OS_IOS
+
+#import <UIKit/UIKit.h>
 
 extern BOOL KDUtilIsDeviceJailbroken();
 
@@ -54,5 +47,17 @@ NS_INLINE BOOL KDUtilIsDevicePad() {
     return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
 }
 
-extern void KDAssert(BOOL eval, NSString *format, ...);
+extern BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version);
+extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version);
 
+NS_INLINE CGFloat KDUtilScreenWidth() {
+    return [UIScreen mainScreen].bounds.size.width;
+}
+
+NS_INLINE CGFloat KDUtilOnePixelSize() {
+    return 1.0f / [UIScreen mainScreen].scale;
+}
+
+extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass);
+
+#endif

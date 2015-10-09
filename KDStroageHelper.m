@@ -72,13 +72,4 @@
     return [NSData dataWithContentsOfFile:[[self libraryDataStorageDirectoryPath] stringByAppendingPathComponent:identifier]];
 }
 
-+ (void)deleteDataFromLibraryWithIdentifier:(NSString *)identifier {
-    NSString *dir = [self libraryDataStorageDirectoryPath];
-    NSError *error;
-    [[NSFileManager defaultManager] removeItemAtPath:[dir stringByAppendingPathComponent:identifier] error:&error];
-    if (error) {
-        KDClassLog(@"Error occurred when delete item: %@", error);
-    }
-}
-
 @end

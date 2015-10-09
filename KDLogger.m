@@ -10,8 +10,8 @@
 #import <execinfo.h>
 #import <sys/utsname.h>
 #import <asl.h>
-#import <UIKit/UIKit.h>
 #import "KDUtilities.h"
+#import <sys/event.h>
 
 static NSFileHandle *__logFileHandle;
 static NSString *__logFilePath;
@@ -133,6 +133,13 @@ void KDLoggerSetLogCustomActionBlock(KDLoggerCustomActionBlock block) {
     __customActionBlock = [block copy];
 }
 
+NSString *KDLoggerGetLogFilePath(void) {
+    return __logFilePath;
+}
+
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+
 void KDLoggerPrintEnviroment() {
     UIDevice *currentDevice = [UIDevice currentDevice];
     struct utsname systemInfo;
@@ -142,6 +149,5 @@ void KDLoggerPrintEnviroment() {
     KDLog(@"KDLogger", @"Enviroment: %@, %@, %@(%@), Jailbroken: %@", @(systemInfo.machine), [currentDevice systemVersion], infoDictionary[@"CFBundleShortVersionString"], infoDictionary[@"CFBundleVersion"], KDUtilIsDeviceJailbroken() ? @"YES": @"NO");
 }
 
-NSString *KDLoggerGetLogFilePath(void) {
-    return __logFilePath;
-}
+#endif
+

@@ -12,4 +12,7 @@
 
 - (NSArray *)KD_arrayUsingMapEnumerateBlock:(id (^)(id obj, NSUInteger idx))block;
 
+- (id)KD_randomObject;
+- (NSArray *)KD_shuffledArray;
+
 @end

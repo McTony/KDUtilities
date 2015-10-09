@@ -11,6 +11,8 @@
 @interface KDFIFOQueue : NSObject
 
 - (id)dequeue;
+- (id)peek;
+
 - (void)enqueue:(id)anObject;
 
 - (NSArray *)allObjects;

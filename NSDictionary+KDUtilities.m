@@ -21,4 +21,13 @@
     return [NSDictionary dictionaryWithDictionary:newDic];
 }
 
+- (NSDictionary *)KD_reversedDictionary {
+    NSMutableDictionary *newDic = [NSMutableDictionary dictionaryWithCapacity:self.count];
+    [self enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+        newDic[obj] = key;
+    }];
+    
+    return newDic;
+}
+
 @end
