@@ -19,6 +19,8 @@
 
 - (UITapGestureRecognizer *)KD_addTapAction:(void(^)(UIView *view))action;
 
+- (void)KD_addCenterConstraint;
+
 @end
 
 

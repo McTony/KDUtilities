@@ -78,6 +78,23 @@ static char __TapActionKey;
     action(self);
 }
 
+
+- (void)KD_addCenterConstraint {
+    NSLayoutConstraint *c1 = [NSLayoutConstraint constraintWithItem:self
+                                                          attribute:NSLayoutAttributeCenterX
+                                                          relatedBy:NSLayoutRelationEqual
+                                                             toItem:self.superview
+                                                          attribute:NSLayoutAttributeCenterX
+                                                         multiplier:1.f constant:0.f];
+    NSLayoutConstraint *c2 = [NSLayoutConstraint constraintWithItem:self
+                                                          attribute:NSLayoutAttributeCenterY
+                                                          relatedBy:NSLayoutRelationEqual
+                                                             toItem:self.superview
+                                                          attribute:NSLayoutAttributeCenterY
+                                                         multiplier:1.f constant:0.f];
+    [self.superview addConstraints:@[c1, c2]];
+}
+
 @end
 
 
