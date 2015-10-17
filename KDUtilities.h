@@ -60,28 +60,14 @@ extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass);
 
 
 NS_INLINE BOOL KDUtilIsDeviceJailbroken() {
-#if !(TARGET_IPHONE_SIMULATOR)
-    if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/bin/bash"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/sbin/sshd"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/etc/apt"] ||
-        [[NSFileManager defaultManager] fileExistsAtPath:@"/private/var/lib/apt/"])  {
-        return YES;
-    }
-    
-    FILE *f = NULL ;
-    if ((f = fopen("/bin/bash", "r")) ||
-        (f = fopen("/Applications/Cydia.app", "r")) ||
-        (f = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r")) ||
-        (f = fopen("/usr/sbin/sshd", "r")) ||
-        (f = fopen("/etc/apt", "r")))  {
-        if (f) fclose(f);
-        return YES;
-    }
-#endif
-    
+#if TARGET_IPHONE_SIMULATOR
     return NO;
+#endif
+    NSArray *libraryPaths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+    NSString *libraryPath = libraryPaths.firstObject;
+    
+    NSArray *c = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[libraryPath substringFromIndex:libraryPath.length - 8] error:nil];
+    return c.count != 0;
 }
 
 #endif
