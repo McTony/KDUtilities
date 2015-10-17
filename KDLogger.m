@@ -43,60 +43,62 @@ void KDLoggerSetLogFilePath(NSString *path) {
 void _KDLog(NSString *module, NSString *format, ...) {
     if (!__loggerEnabled) return;
     
-    static dispatch_once_t pred;
-    static NSDateFormatter *dateFormatter;
-    static aslclient aslclient;
-
-    dispatch_once(&pred, ^{
-        dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"HHmmss"];
+    @autoreleasepool {
+        static dispatch_once_t pred;
+        static NSDateFormatter *dateFormatter;
+        static aslclient aslclient;
         
-        aslclient = asl_open(NULL, "com.apple.console", 0);
-    });
-
-    va_list ap;
-    va_start(ap, format);
-    NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
-    va_end(ap);
-    
-    NSString *line = [[NSString alloc] initWithFormat:[NSThread isMainThread] ? @"%@  [%@] %@\n" : @"%@ *[%@] %@\n",
-                      [dateFormatter stringFromDate:[NSDate date]],
-                      module,
-                      message];
-    
-    fputs(line.UTF8String, stderr);
-    {
-        uid_t const readUID = geteuid();
-        char readUIDString[16];
-        snprintf(readUIDString, sizeof(readUIDString), "%d", readUID);
+        dispatch_once(&pred, ^{
+            dateFormatter = [[NSDateFormatter alloc] init];
+            [dateFormatter setDateFormat:@"HHmmss"];
+            
+            aslclient = asl_open(NULL, "com.apple.console", 0);
+        });
         
-        aslmsg m = asl_new(ASL_TYPE_MSG);
-        if (m != NULL) {
-            if (asl_set(m, ASL_KEY_LEVEL, "5") == 0 &&
-                asl_set(m, ASL_KEY_MSG, line.UTF8String) == 0 &&
-                asl_set(m, ASL_KEY_READ_UID, readUIDString) == 0) {
-                asl_send(aslclient, m);
+        va_list ap;
+        va_start(ap, format);
+        NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
+        va_end(ap);
+        
+        NSString *line = [[NSString alloc] initWithFormat:[NSThread isMainThread] ? @"%@  [%@] %@\n" : @"%@ *[%@] %@\n",
+                          [dateFormatter stringFromDate:[NSDate date]],
+                          module,
+                          message];
+        
+        fputs(line.UTF8String, stderr);
+        {
+            uid_t const readUID = geteuid();
+            char readUIDString[16];
+            snprintf(readUIDString, sizeof(readUIDString), "%d", readUID);
+            
+            aslmsg m = asl_new(ASL_TYPE_MSG);
+            if (m != NULL) {
+                if (asl_set(m, ASL_KEY_LEVEL, "5") == 0 &&
+                    asl_set(m, ASL_KEY_MSG, line.UTF8String) == 0 &&
+                    asl_set(m, ASL_KEY_READ_UID, readUIDString) == 0) {
+                    asl_send(aslclient, m);
+                }
+                asl_free(m);
             }
-            asl_free(m);
         }
-    }
-    
-    if (__logFileHandle) {
-        NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
-        void (^action)() = ^{
-            [__logFileHandle writeData:lineData];
-            [__logFileHandle synchronizeFile];
-        };
         
-        if ([NSThread isMainThread]) {
-            action();
-        } else {
-            dispatch_sync( dispatch_get_main_queue(), action);
+        if (__logFileHandle) {
+            NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
+            void (^action)() = ^{
+                [__logFileHandle writeData:lineData];
+                [__logFileHandle synchronizeFile];
+            };
+            
+            if ([NSThread isMainThread]) {
+                action();
+            } else {
+                dispatch_sync( dispatch_get_main_queue(), action);
+            }
         }
-    }
-
-    if (__customActionBlock) {
-        __customActionBlock(line);
+        
+        if (__customActionBlock) {
+            __customActionBlock(line);
+        }
     }
 }
 
@@ -146,7 +148,7 @@ void KDLoggerPrintEnviroment() {
     uname(&systemInfo);
     
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    KDLog(@"KDLogger", @"Enviroment: %@, %@, %@(%@), Jailbroken: %@", @(systemInfo.machine), [currentDevice systemVersion], infoDictionary[@"CFBundleShortVersionString"], infoDictionary[@"CFBundleVersion"], KDUtilIsDeviceJailbroken() ? @"YES": @"NO");
+    KDLog(@"KDLogger", @"Enviroment: %@, %@, %@(%@)", @(systemInfo.machine), [currentDevice systemVersion], infoDictionary[@"CFBundleShortVersionString"], infoDictionary[@"CFBundleVersion"]);
 }
 
 #endif

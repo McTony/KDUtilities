@@ -88,40 +88,6 @@ extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass) {
     return nil;
 }
 
-extern BOOL KDUtilIsDeviceJailbroken() {
-#if !(TARGET_IPHONE_SIMULATOR)
-    
-    static dispatch_once_t pred;
-    static BOOL jailbroken = NO;
-    
-    dispatch_once(&pred, ^{
-        if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"] ||
-            [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"] ||
-            [[NSFileManager defaultManager] fileExistsAtPath:@"/bin/bash"] ||
-            [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/sbin/sshd"] ||
-            [[NSFileManager defaultManager] fileExistsAtPath:@"/etc/apt"] ||
-            [[NSFileManager defaultManager] fileExistsAtPath:@"/private/var/lib/apt/"])  {
-            jailbroken = YES;
-            return;
-        }
-        
-        FILE *f = NULL ;
-        if ((f = fopen("/bin/bash", "r")) ||
-            (f = fopen("/Applications/Cydia.app", "r")) ||
-            (f = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r")) ||
-            (f = fopen("/usr/sbin/sshd", "r")) ||
-            (f = fopen("/etc/apt", "r")))  {
-            jailbroken = YES;
-        }
-        if (f) fclose(f);
-    });
-    
-    return jailbroken;
-#endif
-    
-    return NO;
-}
-
 #endif
 
 
