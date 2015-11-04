@@ -45,13 +45,9 @@ void _KDLog(NSString *module, NSString *format, ...) {
     
     @autoreleasepool {
         static dispatch_once_t pred;
-        static NSDateFormatter *dateFormatter;
         static aslclient aslclient;
         
         dispatch_once(&pred, ^{
-            dateFormatter = [[NSDateFormatter alloc] init];
-            [dateFormatter setDateFormat:@"HHmmss"];
-            
             aslclient = asl_open(NULL, "com.apple.console", 0);
         });
         
@@ -60,8 +56,11 @@ void _KDLog(NSString *module, NSString *format, ...) {
         NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
         va_end(ap);
         
-        NSString *line = [[NSString alloc] initWithFormat:[NSThread isMainThread] ? @"%@  [%@] %@\n" : @"%@ *[%@] %@\n",
-                          [dateFormatter stringFromDate:[NSDate date]],
+        NSDateComponents *nowComponents = [[NSCalendar currentCalendar] components:NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond fromDate:[NSDate date]];
+        
+        NSString *line = [[NSString alloc] initWithFormat:@"%02d%02d%02d %@[%@] %@\n",
+                          (int)nowComponents.hour, (int)nowComponents.minute, (int)nowComponents.second,
+                          [NSThread isMainThread] ? @"*": @" ",
                           module,
                           message];
         
