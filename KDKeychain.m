@@ -11,17 +11,39 @@
 
 @implementation KDKeychain
 
-+ (NSString *)keychainIdentifier {
-    return [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];
+static NSString *__keychainIdentifier;
+static NSString *__keychainAccessGroup;
+
+
++ (void)initialize {
+    __keychainIdentifier = [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];
+}
+
++ (void)setKeychainIdentifier:(NSString *)keychainIdentifier {
+    __keychainIdentifier = keychainIdentifier;
+}
+
++ (void)setKeychainAccessGroup:(NSString *)keychainAccessGroup {
+    __keychainAccessGroup = keychainAccessGroup;
+}
+
++ (NSMutableDictionary *)baseQueryWithIdentifier:(NSString *)identifier {
+    NSMutableDictionary *query = [@{(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
+                                    (__bridge id)kSecAttrService: __keychainIdentifier} mutableCopy];
+
+    if (__keychainAccessGroup) {
+        query[(__bridge id)kSecAttrAccessGroup] = __keychainAccessGroup;
+    }
+    
+    NSData *encodedIdentifier = [identifier dataUsingEncoding:NSUTF8StringEncoding];
+    query[(__bridge id)kSecAttrGeneric] = encodedIdentifier;
+    query[(__bridge id)kSecAttrAccount] = encodedIdentifier;
+    
+    return query;
 }
 
 + (BOOL)writeKeychainWithIdentifier:(NSString *)identifier data:(NSData *)data {
-    NSData *encodedIdentifier = [identifier dataUsingEncoding:NSUTF8StringEncoding];
-    
-    NSDictionary *query = @{(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
-                            (__bridge id)kSecAttrGeneric: encodedIdentifier,
-                            (__bridge id)kSecAttrAccount: encodedIdentifier,
-                            (__bridge id)kSecAttrService: [self keychainIdentifier]};
+    NSMutableDictionary *query = [self baseQueryWithIdentifier:identifier];
     
     if (SecItemCopyMatching((__bridge CFDictionaryRef)query, NULL) == noErr) {
         OSStatus result = SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)@{(__bridge id)kSecValueData: data});
@@ -29,13 +51,9 @@
         
         return result == noErr;
     } else {
-        NSDictionary *item = @{(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
-                               (__bridge id)kSecAttrGeneric: encodedIdentifier,
-                               (__bridge id)kSecAttrAccount: encodedIdentifier,
-                               (__bridge id)kSecAttrService: [self keychainIdentifier],
-                               (__bridge id)kSecValueData: data};
+        query[(__bridge id)kSecValueData] = data;
         
-        OSStatus result = SecItemAdd((__bridge CFDictionaryRef)item, NULL);
+        OSStatus result = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
         KDClassLog(@"Add the keychain item result: %d", result);
         
         return result == noErr;
@@ -43,14 +61,9 @@
 }
 
 + (NSData *)keychainItemPersistentRefWithIdentifier:(NSString *)identifier {
-    NSData *encodedIdentifier = [identifier dataUsingEncoding:NSUTF8StringEncoding];
-    
-    NSDictionary *query = @{(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
-                            (__bridge id)kSecAttrGeneric: encodedIdentifier,
-                            (__bridge id)kSecAttrAccount: encodedIdentifier,
-                            (__bridge id)kSecAttrService: [self keychainIdentifier],
-                            (__bridge id)kSecMatchLimit: (__bridge id)kSecMatchLimitOne,
-                            (__bridge id)kSecReturnPersistentRef: (__bridge id)kCFBooleanTrue};
+    NSMutableDictionary *query = [self baseQueryWithIdentifier:identifier];
+    query[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
+    query[(__bridge id)kSecReturnPersistentRef] = (__bridge id)kCFBooleanTrue;
     
     CFTypeRef result = NULL;
     SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
@@ -59,14 +72,11 @@
 }
 
 + (NSData *)keychainItemDataWithIdentifier:(NSString *)identifier {
-    NSData *encodedIdentifier = [identifier dataUsingEncoding:NSUTF8StringEncoding];
+    NSMutableDictionary *query = [self baseQueryWithIdentifier:identifier];
+    query[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
+    query[(__bridge id)kSecReturnData] = (__bridge id)kCFBooleanTrue;
     
-    NSDictionary *query = @{(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
-                            (__bridge id)kSecAttrGeneric: encodedIdentifier,
-                            (__bridge id)kSecAttrAccount: encodedIdentifier,
-                            (__bridge id)kSecAttrService: [self keychainIdentifier],
-                            (__bridge id)kSecMatchLimit: (__bridge id)kSecMatchLimitOne,
-                            (__bridge id)kSecReturnData: (__bridge id)kCFBooleanTrue};
+    NSLog(@"%@", query);
     
     CFTypeRef result = NULL;
     OSStatus resultStatus = SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
@@ -78,12 +88,7 @@
 }
 
 + (BOOL)deleteKeychainItemWithIdentifier:(NSString *)identifier {
-    NSData *encodedIdentifier = [identifier dataUsingEncoding:NSUTF8StringEncoding];
-    
-    NSDictionary *query = @{(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
-                            (__bridge id)kSecAttrGeneric: encodedIdentifier,
-                            (__bridge id)kSecAttrAccount: encodedIdentifier,
-                            (__bridge id)kSecAttrService: [self keychainIdentifier]};
+    NSMutableDictionary *query = [self baseQueryWithIdentifier:identifier];
     
     OSStatus result = SecItemDelete((__bridge CFDictionaryRef)query);
     if (result != noErr) {
