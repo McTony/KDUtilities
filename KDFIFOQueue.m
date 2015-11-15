@@ -21,18 +21,22 @@
 }
 
 - (id)dequeue{
-    if (_firstNode == nil) return nil;
-    
-    KDFIFOQueueNode *node = _firstNode;
-    _firstNode = node.nextNode;
-    
-    if (_firstNode == nil) {
-        _lastNode = nil;
+    @autoreleasepool {
+        if (_firstNode == nil) return nil;
+        
+        KDFIFOQueueNode *node = _firstNode;
+        _firstNode = node.nextNode;
+        
+        node.nextNode = nil;
+        
+        if (_firstNode == nil) {
+            _lastNode = nil;
+        }
+        
+        _count--;
+        
+        return node.payload;
     }
-    
-    _count--;
-    
-    return node.payload;
 }
 
 - (id)peek {
@@ -40,23 +44,25 @@
 }
 
 - (void)enqueue:(id)anObject {
-    KDFIFOQueueNode *newNode = [[KDFIFOQueueNode alloc] init];
-    newNode.payload = anObject;
-    
-    if (_firstNode == nil) {
-        _firstNode = newNode;
-        _lastNode = newNode;
+    @autoreleasepool {
+        KDFIFOQueueNode *newNode = [[KDFIFOQueueNode alloc] init];
+        newNode.payload = anObject;
         
-        _count = 1;
-    } else {
-        _lastNode.nextNode = newNode;
-        _lastNode = newNode;
-        
-        _count++;
-        
-        if (self.maxQueueSize > 0) {
-            while (_count > self.maxQueueSize) {
-                [self dequeue];
+        if (_firstNode == nil) {
+            _firstNode = newNode;
+            _lastNode = newNode;
+            
+            _count = 1;
+        } else {
+            _lastNode.nextNode = newNode;
+            _lastNode = newNode;
+            
+            _count++;
+            
+            if (self.maxQueueSize > 0) {
+                while (_count > self.maxQueueSize) {
+                    [self dequeue];
+                }
             }
         }
     }
