@@ -35,9 +35,7 @@ static NSString *__keychainAccessGroup;
         query[(__bridge id)kSecAttrAccessGroup] = __keychainAccessGroup;
     }
     
-    NSData *encodedIdentifier = [identifier dataUsingEncoding:NSUTF8StringEncoding];
-    query[(__bridge id)kSecAttrGeneric] = encodedIdentifier;
-    query[(__bridge id)kSecAttrAccount] = encodedIdentifier;
+    query[(__bridge id)kSecAttrAccount] = identifier;
     
     return query;
 }
@@ -75,9 +73,7 @@ static NSString *__keychainAccessGroup;
     NSMutableDictionary *query = [self baseQueryWithIdentifier:identifier];
     query[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
     query[(__bridge id)kSecReturnData] = (__bridge id)kCFBooleanTrue;
-    
-    NSLog(@"%@", query);
-    
+        
     CFTypeRef result = NULL;
     OSStatus resultStatus = SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
     if (resultStatus != noErr && resultStatus != errSecItemNotFound) {

@@ -19,11 +19,12 @@ static NSString *__logFilePath;
 static NSUncaughtExceptionHandler *__previousExceptionHandler;
 static KDLoggerCustomActionBlock __customActionBlock;
 
+static dispatch_queue_t __dispatchQueue;
+
 static BOOL __loggerEnabled = YES;
 void KDLoggerSetEnabled(BOOL enabled) {
     __loggerEnabled = enabled;
 }
-
 
 void KDLoggerSetLogFilePath(NSString *path) {
     if (__logFileHandle) {
@@ -43,29 +44,36 @@ void KDLoggerSetLogFilePath(NSString *path) {
 void _KDLog(NSString *module, NSString *format, ...) {
     if (!__loggerEnabled) return;
     
-    @autoreleasepool {
-        static dispatch_once_t pred;
-        static aslclient aslclient;
-        
-        dispatch_once(&pred, ^{
-            aslclient = asl_open(NULL, "com.apple.console", 0);
-        });
-        
-        va_list ap;
-        va_start(ap, format);
-        NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
-        va_end(ap);
-        
-        NSDateComponents *nowComponents = [[NSCalendar currentCalendar] components:NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond fromDate:[NSDate date]];
-        
-        NSString *line = [[NSString alloc] initWithFormat:@"%02d%02d%02d %@[%@] %@\n",
-                          (int)nowComponents.hour, (int)nowComponents.minute, (int)nowComponents.second,
-                          [NSThread isMainThread] ? @"*": @" ",
-                          module,
-                          message];
-        
-        fputs(line.UTF8String, stderr);
-        {
+    static dispatch_once_t pred;
+    dispatch_once(&pred, ^{
+        __dispatchQueue = dispatch_queue_create("KDLogger", NULL);
+    });
+    
+    va_list ap;
+    va_start(ap, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
+    va_end(ap);
+    
+    NSString *symbol = [NSThread isMainThread] ? @"*": @" ";
+    NSDateComponents *nowComponents = [[NSCalendar currentCalendar] components:NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond fromDate:[NSDate date]];
+    
+    dispatch_sync(__dispatchQueue, ^{
+        @autoreleasepool {
+            NSString *line = [[NSString alloc] initWithFormat:@"%02d%02d%02d %@[%@] %@\n",
+                              (int)nowComponents.hour, (int)nowComponents.minute, (int)nowComponents.second,
+                              symbol,
+                              module,
+                              message];
+            
+#if DEBUG
+            fputs(line.UTF8String, stderr);
+            static dispatch_once_t pred;
+            static aslclient aslclient;
+            
+            dispatch_once(&pred, ^{
+                aslclient = asl_open(NULL, "com.apple.console", 0);
+            });
+            
             uid_t const readUID = geteuid();
             char readUIDString[16];
             snprintf(readUIDString, sizeof(readUIDString), "%d", readUID);
@@ -79,26 +87,21 @@ void _KDLog(NSString *module, NSString *format, ...) {
                 }
                 asl_free(m);
             }
-        }
-        
-        if (__logFileHandle) {
-            NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
-            void (^action)() = ^{
+#endif
+            
+            if (__logFileHandle) {
+                NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
+                
                 [__logFileHandle writeData:lineData];
                 [__logFileHandle synchronizeFile];
-            };
+            }
             
-            if ([NSThread isMainThread]) {
-                action();
-            } else {
-                dispatch_sync( dispatch_get_main_queue(), action);
+            if (__customActionBlock) {
+                __customActionBlock(line);
             }
         }
-        
-        if (__customActionBlock) {
-            __customActionBlock(line);
-        }
-    }
+    });
+
 }
 
 void KDLoggerExceptionHandler(NSException* exception) {
