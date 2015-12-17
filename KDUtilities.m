@@ -69,17 +69,6 @@ BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version) {
     return (_compareVersions([[UIDevice currentDevice] systemVersion], version) != NSOrderedAscending);
 }
 
-extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version) {
-    static int OSMajorVersion;
-    static dispatch_once_t pred;
-    
-    dispatch_once(&pred, ^{
-        OSMajorVersion = [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."][0] intValue];
-    });
-    
-    return OSMajorVersion >= version;
-}
-
 extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass) {
     while (view != nil) {
         view = view.superview;
@@ -89,6 +78,27 @@ extern UIView *KDUtilFindViewInSuperViews(UIView *view, Class viewClass) {
 }
 
 #endif
+
+extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version) {
+    static int OSMajorVersion;
+    static dispatch_once_t pred;
+    
+    dispatch_once(&pred, ^{
+#if TARGET_OS_IOS
+
+        OSMajorVersion = [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."][0] intValue];
+#else
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        Gestalt(gestaltSystemVersionMinor, &OSMajorVersion);
+#pragma clang diagnostic pop
+#endif
+    });
+    
+    return OSMajorVersion >= version;
+}
+
+
 
 
 extern void KDAssert(BOOL eval, NSString *format, ...) {

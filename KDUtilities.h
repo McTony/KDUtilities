@@ -47,7 +47,6 @@ NS_INLINE BOOL KDUtilIsDevicePad() {
 }
 
 extern BOOL KDUtilIsOSVersionHigherOrEqual(NSString* version);
-extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version);
 
 NS_INLINE CGFloat KDUtilScreenWidth() {
     return [UIScreen mainScreen].bounds.size.width;
@@ -72,3 +71,5 @@ NS_INLINE BOOL KDUtilIsDeviceJailbroken() {
 }
 
 #endif
+
+extern BOOL KDUtilIsOSMajorVersionHigherOrEqual(int version);
