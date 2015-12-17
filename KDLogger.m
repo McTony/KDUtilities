@@ -12,6 +12,7 @@
 #import <asl.h>
 #import "KDUtilities.h"
 #import <sys/event.h>
+#import <libkern/OSAtomic.h>
 
 static NSFileHandle *__logFileHandle;
 static NSString *__logFilePath;
@@ -19,7 +20,7 @@ static NSString *__logFilePath;
 static NSUncaughtExceptionHandler *__previousExceptionHandler;
 static KDLoggerCustomActionBlock __customActionBlock;
 
-static dispatch_queue_t __dispatchQueue;
+static OSSpinLock __lock = OS_SPINLOCK_INIT;
 
 static BOOL __loggerEnabled = YES;
 void KDLoggerSetEnabled(BOOL enabled) {
@@ -44,70 +45,67 @@ void KDLoggerSetLogFilePath(NSString *path) {
 void _KDLog(NSString *module, NSString *format, ...) {
     if (!__loggerEnabled) return;
     
-    static dispatch_once_t pred;
-    dispatch_once(&pred, ^{
-        __dispatchQueue = dispatch_queue_create("KDLogger", NULL);
-    });
-    
-    va_list ap;
-    va_start(ap, format);
-    NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
-    va_end(ap);
-    
-    NSString *symbol = [NSThread isMainThread] ? @"*": @" ";
-    NSDateComponents *nowComponents = [[NSCalendar currentCalendar] components:NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond fromDate:[NSDate date]];
-    
-    dispatch_sync(__dispatchQueue, ^{
-        @autoreleasepool {
-            NSString *line = [[NSString alloc] initWithFormat:@"%02d%02d%02d %@[%@] %@\n",
-                              (int)nowComponents.hour, (int)nowComponents.minute, (int)nowComponents.second,
-                              symbol,
-                              module,
-                              message];
-            
+    @autoreleasepool {
+        
+        va_list ap;
+        va_start(ap, format);
+        NSString *message = [[NSString alloc] initWithFormat:format arguments:ap];
+        va_end(ap);
+        
+        NSString *symbol = [NSThread isMainThread] ? @"*": @" ";
+        NSDateComponents *nowComponents = [[NSCalendar currentCalendar] components:NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond fromDate:[NSDate date]];
+        
+        NSString *line = [[NSString alloc] initWithFormat:@"%02d%02d%02d %@[%@] %@\n",
+                          (int)nowComponents.hour, (int)nowComponents.minute, (int)nowComponents.second,
+                          symbol,
+                          module,
+                          message];
+        
+        OSSpinLockLock(&__lock);
+        
 #if DEBUG
-            fputs(line.UTF8String, stderr);
-            static dispatch_once_t pred;
-            static aslclient aslclient;
-            
-            dispatch_once(&pred, ^{
-                aslclient = asl_open(NULL, "com.apple.console", 0);
-            });
-            
-            uid_t const readUID = geteuid();
-            char readUIDString[16];
-            snprintf(readUIDString, sizeof(readUIDString), "%d", readUID);
-            
-            aslmsg m = asl_new(ASL_TYPE_MSG);
-            if (m != NULL) {
-                if (asl_set(m, ASL_KEY_LEVEL, "5") == 0 &&
-                    asl_set(m, ASL_KEY_MSG, line.UTF8String) == 0 &&
-                    asl_set(m, ASL_KEY_READ_UID, readUIDString) == 0) {
-                    asl_send(aslclient, m);
-                }
-                asl_free(m);
+        fputs(line.UTF8String, stderr);
+        static dispatch_once_t pred;
+        static aslclient aslclient;
+        
+        dispatch_once(&pred, ^{
+            aslclient = asl_open(NULL, "com.apple.console", 0);
+        });
+        
+        uid_t const readUID = geteuid();
+        char readUIDString[16];
+        snprintf(readUIDString, sizeof(readUIDString), "%d", readUID);
+        
+        aslmsg m = asl_new(ASL_TYPE_MSG);
+        if (m != NULL) {
+            if (asl_set(m, ASL_KEY_LEVEL, "5") == 0 &&
+                asl_set(m, ASL_KEY_MSG, line.UTF8String) == 0 &&
+                asl_set(m, ASL_KEY_READ_UID, readUIDString) == 0) {
+                asl_send(aslclient, m);
             }
-#endif
-            
-            if (__logFileHandle) {
-                NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
-                
-                [__logFileHandle writeData:lineData];
-                [__logFileHandle synchronizeFile];
-            }
-            
-            if (__customActionBlock) {
-                __customActionBlock(line);
-            }
+            asl_free(m);
         }
-    });
-
+#endif
+        
+        if (__logFileHandle) {
+            NSData *lineData = [line dataUsingEncoding:NSUTF8StringEncoding];
+            
+            [__logFileHandle writeData:lineData];
+            [__logFileHandle synchronizeFile];
+        }
+        
+        if (__customActionBlock) {
+            __customActionBlock(line);
+        }
+        
+        OSSpinLockUnlock(&__lock);
+    }
 }
 
 void KDLoggerExceptionHandler(NSException* exception) {
     KDLog(@"KDLogger", @"Uncaught Exception, description:%@, call stack:%@",
-           exception.description,
-           [exception callStackSymbols]);
+          exception.description,
+          [exception callStackSymbols]);
     if (__previousExceptionHandler) {
         __previousExceptionHandler(exception);
     }
@@ -115,7 +113,7 @@ void KDLoggerExceptionHandler(NSException* exception) {
 
 void KDLoggerInstallUncaughtExceptionHandler(void) {
     __previousExceptionHandler = NSGetUncaughtExceptionHandler();
-	NSSetUncaughtExceptionHandler(&KDLoggerExceptionHandler);
+    NSSetUncaughtExceptionHandler(&KDLoggerExceptionHandler);
 }
 
 void KDLoggerPrintCallStack(void) {
@@ -126,7 +124,7 @@ void KDLoggerPrintCallStack(void) {
     NSMutableArray *backtrace = [NSMutableArray arrayWithCapacity:frames];
     for (int  i = 0; i < frames; i++)
     {
-	 	[backtrace addObject:@(strs[i])];
+        [backtrace addObject:@(strs[i])];
     }
     free(strs);
     
