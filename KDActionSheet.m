@@ -53,8 +53,7 @@ static NSMutableArray *ActiveInstances = nil;
     return self;
 }
 
-- (void)addButtonWithTitle:(NSString *)title action:(void ( ^)())action {
-    KDAssert(title != nil, @"Title cannot be nil.");
+- (void)addButtonWithTitle:(NSString * _Nonnull)title action:(void ( ^)())action {
     [_buttonTitleArray addObject:title];
     if (action) {
         [_buttonActionBlockArray addObject:[action copy]];

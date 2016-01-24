@@ -49,8 +49,7 @@ static NSMutableArray *__ActiveInstances = nil;
     return self;
 }
 
-- (void)addButtonWithTitle:(NSString *)title action:(void ( ^)(KDAlertView *alertView))action {
-    KDAssert(title != nil, @"Title cannot be nil.");
+- (void)addButtonWithTitle:(NSString * _Nonnull)title action:(void ( ^)(KDAlertView *alertView))action {
     [_buttonTitleArray addObject:title];
     [_buttonActionBlockArray addObject:action ? [action copy] : [NSNull null]];
 }

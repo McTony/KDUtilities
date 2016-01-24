@@ -20,8 +20,6 @@ static NSString *__logFilePath;
 static NSUncaughtExceptionHandler *__previousExceptionHandler;
 static KDLoggerCustomActionBlock __customActionBlock;
 
-static OSSpinLock __lock = OS_SPINLOCK_INIT;
-
 static BOOL __loggerEnabled = YES;
 void KDLoggerSetEnabled(BOOL enabled) {
     __loggerEnabled = enabled;
@@ -45,6 +43,14 @@ void KDLoggerSetLogFilePath(NSString *path) {
 void _KDLog(NSString *module, NSString *format, ...) {
     if (!__loggerEnabled) return;
     
+    static dispatch_once_t pred;
+    __strong static NSLock *lock = nil;
+    
+    dispatch_once(&pred, ^{
+        lock = [[NSLock alloc] init];
+    });
+
+    
     @autoreleasepool {
         
         va_list ap;
@@ -61,7 +67,7 @@ void _KDLog(NSString *module, NSString *format, ...) {
                           module,
                           message];
         
-        OSSpinLockLock(&__lock);
+        [lock lock];
         
 #if DEBUG
         fputs(line.UTF8String, stderr);
@@ -98,7 +104,7 @@ void _KDLog(NSString *module, NSString *format, ...) {
             __customActionBlock(line);
         }
         
-        OSSpinLockUnlock(&__lock);
+        [lock unlock];
     }
 }
 
