@@ -167,6 +167,7 @@
         _label.textAlignment = NSTextAlignmentCenter;
         _label.backgroundColor = [UIColor clearColor];
         _label.textColor = [UIColor whiteColor];
+        _label.numberOfLines = 0;
         _label.font = [UIFont boldSystemFontOfSize:16];
 
         // Add details label
@@ -176,7 +177,8 @@
         _detailsLabel.backgroundColor = [UIColor clearColor];
         _detailsLabel.textColor = [UIColor whiteColor];
         _detailsLabel.font = [UIFont boldSystemFontOfSize:12];
-        
+        _detailsLabel.numberOfLines = 0;
+
 		rotationTransform = CGAffineTransformIdentity;
     }
     return self;
