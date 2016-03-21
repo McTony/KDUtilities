@@ -19,4 +19,6 @@
 + (NSData *)dataFromLibraryWithIdentifier:(NSString *)identifier;
 + (void)deleteDataFromLibraryWithIdentifier:(NSString *)identifier;
 
++ (void)deleteAllData;
+
 @end

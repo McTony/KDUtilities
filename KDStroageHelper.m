@@ -81,4 +81,13 @@
     }
 }
 
++ (void)deleteAllData {
+    NSError *error;
+    [[NSFileManager defaultManager] removeItemAtPath:[self libraryDataStorageDirectoryPath] error:&error];
+    if (error) {
+        KDClassLog(@"Error occurred when delete all data: %@", error);
+    }
+
+}
+
 @end
