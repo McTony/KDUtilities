@@ -33,6 +33,19 @@ static char NSDataAssociatedJSONObject;
 
     return result;
 }
+
+- (id)KD_JSONObjectWithMutableContainers {
+    NSError *error;
+    id result = [NSJSONSerialization JSONObjectWithData:self options:NSJSONReadingMutableContainers error:&error];
+    if (error) {
+        KDLog(@"JSONHelper", @"Error occered when JSON deserializate NSData to object: %@", error);
+        return nil;
+    }
+    
+    return result;
+}
+
+
 @end
 
 static NSData *JSONDataFromObject(id object) {

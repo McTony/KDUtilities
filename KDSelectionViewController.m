@@ -10,6 +10,8 @@
 
 @interface KDSelectionViewController () {
     NSArray *_options;
+    
+    NSArray *_cells;
 }
 
 @end
@@ -26,33 +28,50 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    if (!_cells) {
+        _cells = [_options KD_arrayUsingMapEnumerateBlock:^id(id obj, NSUInteger idx) {
+            UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+            
+            cell.textLabel.text = obj;
+            
+            if (self.cellSetupBlock) {
+                self.cellSetupBlock(cell, obj, idx);
+            }
+            
+            return cell;
+        }];
+        [self.tableView reloadData];
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return _options.count;
+    return _cells.count;
 }
 
-
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
-    
-    if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
-    }
-    
-    cell.textLabel.text = _options[indexPath.row];
-    
-    if (self.cellSetupBlock) {
-        self.cellSetupBlock(cell);
-    }
-    
-    return cell;
+    return _cells[indexPath.row];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (self.completionHandler) {
         self.completionHandler(_options[indexPath.row], indexPath.row);
     }
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
+    return _footerText;
+}
+
+- (void)setFooterText:(NSString *)footerText {
+    _footerText = [footerText copy];
+    
+    [self.tableView reloadData];
 }
 
 @end

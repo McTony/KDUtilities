@@ -10,6 +10,7 @@
 
 @interface NSData (KDJSONHelper)
 - (id)KD_JSONObject;
+- (id)KD_JSONObjectWithMutableContainers;
 @end
 
 @interface NSDictionary (KDJSONHelper)

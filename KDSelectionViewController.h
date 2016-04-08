@@ -12,7 +12,9 @@
 
 - (instancetype)initWithOptions:(NSArray *)options;
 
-@property (nonatomic, copy) void(^cellSetupBlock)(UITableViewCell *cell);
+@property (nonatomic, copy) void(^cellSetupBlock)(UITableViewCell *cell, NSString *title, NSInteger index);
 @property (nonatomic, copy) void(^completionHandler)(NSString *result, NSInteger index);
+
+@property (nonatomic, copy) NSString *footerText;
 
 @end
